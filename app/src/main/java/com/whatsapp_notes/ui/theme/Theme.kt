@@ -12,6 +12,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+import androidx.compose.runtime.*
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.ui.platform.LocalContext
+
 // Define custom colors based on your Tailwind config
 val Primary = Color(0xFF3B82F6) // primary
 val Secondary = Color(0xFF1E1E1E) // secondary
@@ -107,4 +111,17 @@ fun NotesAppTheme(
         typography = Typography, // Typography will be defined in Type.kt
         content = content
     )
+}
+
+@Composable
+fun ChangeSystemBarsColor() {
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = !isSystemInDarkTheme()
+
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = DarkDarker, // Replace with your desired color
+            darkIcons = useDarkIcons
+        )
+    }
 }

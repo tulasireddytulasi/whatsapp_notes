@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.whatsapp_notes.ui.screens.HomeScreen // Import the HomeScreen Composable
+import com.whatsapp_notes.ui.theme.ChangeSystemBarsColor
 import com.whatsapp_notes.ui.theme.NotesAppTheme // Import your custom theme
 
 /**
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), // Make the surface fill the entire screen
                     color = MaterialTheme.colorScheme.background // Use the background color defined in your theme
                 ) {
+                    ChangeSystemBarsColor()
                     // Display the HomeScreen Composable
                     HomeScreen()
                 }

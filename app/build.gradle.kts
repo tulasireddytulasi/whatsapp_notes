@@ -71,4 +71,5 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0") // For image loading
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") // For coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1") // For Android-specific coroutines
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
 }
