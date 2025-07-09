@@ -11,10 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-
-import androidx.compose.runtime.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import androidx.compose.ui.platform.LocalContext
 
 // Define custom colors based on your Tailwind config
 val Primary = Color(0xFF3B82F6) // primary
