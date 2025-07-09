@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.width // Changed from widthIn(min = ...) to width()
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -70,7 +70,7 @@ fun NoteCard(
             .clip(RoundedCornerShape(8.dp)) // rounded-md equivalent
             .background(DarkLighter)
             .border(1.dp, DarkDarker, RoundedCornerShape(8.dp)) // border border-dark-darker
-            .clickable { onClick(note) }
+            .clickable { onClick(note) } // This is the main click handler for the card
             .height(IntrinsicSize.Min) // Allow children to define min height
     ) {
         // Swipe Actions (Visual placeholders for now, actual logic will be added later)
@@ -83,8 +83,8 @@ fun NoteCard(
                     .matchParentSize() // Occupy the same size as the parent Box
                     .background(Color.Red.copy(alpha = 0.6f)) // Example background for delete
                     .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp) // Padding for the icon
-                    .clickable { onDeleteClick(note) }, // Make clickable for now
+                    .padding(end = 16.dp), // Padding for the icon
+                // Removed .clickable { onDeleteClick(note) } here
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
@@ -101,8 +101,8 @@ fun NoteCard(
                     .matchParentSize() // Occupy the same size as the parent Box
                     .background(Primary.copy(alpha = 0.6f)) // Example background for archive
                     .align(Alignment.CenterStart)
-                    .padding(start = 16.dp) // Padding for the icon
-                    .clickable { onArchiveClick(note) }, // Make clickable for now
+                    .padding(start = 16.dp), // Padding for the icon
+                // Removed .clickable { onArchiveClick(note) } here
                 contentAlignment = Alignment.CenterStart
             ) {
                 Icon(
@@ -189,7 +189,7 @@ fun NoteCard(
                         "ideas" -> Purple900
                         else -> DarkLighter // Default for unknown categories
                     }
-                    val categoryTextColor = when (note.category.lowercase(Locale.ROOT)) {
+                    val categoryTextColor = when (note.category.lowercase(Locale.getDefault())) {
                         "work" -> Blue300
                         "personal" -> Green300
                         "ideas" -> Purple300
@@ -198,7 +198,10 @@ fun NoteCard(
 
                     Box(
                         modifier = Modifier
-                            .background(categoryBackgroundColor, RoundedCornerShape(4.dp)) // rounded text-xs
+                            .background(
+                                categoryBackgroundColor,
+                                RoundedCornerShape(4.dp)
+                            ) // rounded text-xs
                             .padding(horizontal = 8.dp, vertical = 2.dp) // px-2 py-0.5
                     ) {
                         Text(

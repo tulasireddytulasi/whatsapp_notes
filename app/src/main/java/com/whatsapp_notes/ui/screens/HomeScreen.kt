@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width // Required for fixed width of pinned notes
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -29,11 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController // Import NavController
+import androidx.navigation.compose.rememberNavController // Required for preview
 import com.whatsapp_notes.data.model.Note
 import com.whatsapp_notes.data.repository.NoteRepository
 import com.whatsapp_notes.ui.components.CategoryFilterButtons
 import com.whatsapp_notes.ui.components.HomeTopBar
-import com.whatsapp_notes.ui.components.NoteCard // Import the unified NoteCard
+import com.whatsapp_notes.ui.components.NoteCard
 import com.whatsapp_notes.ui.components.SearchBar
 import com.whatsapp_notes.ui.theme.DarkDefault
 import com.whatsapp_notes.ui.theme.DarkLighter
@@ -45,10 +47,12 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
  * Composable function for the main Home Screen layout of the Notes App.
  * This screen displays the top bar, search, filters, pinned notes,
  * and all notes sections, along with a floating action button.
+ *
+ * @param navController The NavController used for navigating between screens.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) { // Add navController as a parameter
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Work", "Personal", "Ideas")
@@ -136,7 +140,8 @@ fun HomeScreen() {
                                 note = note,
                                 cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
                                 onClick = { clickedNote ->
-                                    println("Clicked pinned note: ${clickedNote.title}")
+                                    // Navigate to NoteViewScreen with the note ID
+                                    navController.navigate("note_view_screen/${clickedNote.id}")
                                 }
                             )
                         }
@@ -166,9 +171,7 @@ fun HomeScreen() {
                     }
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // No need for a nested LazyColumn height or scrollEnabled here,
-                    // as the parent LazyColumn will handle the overall scrolling.
-                    Column( // Using Column here as the parent LazyColumn handles scrolling
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3 equivalent
                     ) {
@@ -177,7 +180,8 @@ fun HomeScreen() {
                                 note = note,
                                 cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
                                 onClick = { clickedNote ->
-                                    println("Clicked all note: ${clickedNote.title}")
+                                    // Navigate to NoteViewScreen with the note ID
+                                    navController.navigate("note_view_screen/${clickedNote.id}")
                                 },
                                 onDeleteClick = { deletedNote ->
                                     println("Delete note: ${deletedNote.title}")
@@ -202,6 +206,7 @@ fun HomeScreen() {
 @Composable
 fun HomeScreenPreview() {
     NotesAppTheme {
-        HomeScreen()
+        // For preview, provide a mock NavController
+        HomeScreen(navController = rememberNavController())
     }
 }

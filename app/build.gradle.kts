@@ -72,4 +72,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") // For coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1") // For Android-specific coroutines
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 }

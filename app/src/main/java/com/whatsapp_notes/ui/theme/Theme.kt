@@ -91,7 +91,7 @@ fun NotesAppTheme(
         // If a light theme is ever needed, you'd define a LightColorScheme
         // For now, we'll default to DarkColorScheme even if system is light,
         // to match the HTML's dark-only design.
-        DarkColorScheme
+        LightColorScheme
     }
 
     val view = LocalView.current
