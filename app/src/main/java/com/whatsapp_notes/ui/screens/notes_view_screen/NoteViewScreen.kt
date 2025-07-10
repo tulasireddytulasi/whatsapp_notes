@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.screens
+package com.whatsapp_notes.ui.screens.notes_view_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

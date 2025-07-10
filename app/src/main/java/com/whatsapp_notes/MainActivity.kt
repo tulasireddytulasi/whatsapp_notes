@@ -14,8 +14,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.whatsapp_notes.ui.screens.HomeScreen // Import HomeScreen
-import com.whatsapp_notes.ui.screens.NoteViewScreen // Import NoteViewScreen
+import com.whatsapp_notes.ui.screens.home_screen.HomeScreen // Import HomeScreen
+import com.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen // Import NoteViewScreen
 import com.whatsapp_notes.ui.theme.NotesAppTheme // Import your custom theme
 
 /**

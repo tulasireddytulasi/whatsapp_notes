@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.screens.components
+package com.whatsapp_notes.ui.screens.home_screen.components
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background

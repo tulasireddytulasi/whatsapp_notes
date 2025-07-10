@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.screens
+package com.whatsapp_notes.ui.screens.home_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,12 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController // Import NavController
 import androidx.navigation.compose.rememberNavController // Required for preview
+import com.whatsapp_notes.Routes
 import com.whatsapp_notes.data.model.Note
 import com.whatsapp_notes.data.repository.NoteRepository
-import com.whatsapp_notes.ui.screens.components.CategoryFilterButtons
-import com.whatsapp_notes.ui.screens.components.HomeTopBar
-import com.whatsapp_notes.ui.screens.components.NoteCard
-import com.whatsapp_notes.ui.screens.components.SearchBar
+import com.whatsapp_notes.ui.screens.home_screen.components.CategoryFilterButtons
+import com.whatsapp_notes.ui.screens.home_screen.components.HomeTopBar
+import com.whatsapp_notes.ui.screens.home_screen.components.NoteCard
+import com.whatsapp_notes.ui.screens.home_screen.components.SearchBar
 import com.whatsapp_notes.ui.theme.DarkDefault
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.Gray400
@@ -141,7 +142,13 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                                 cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
                                 onClick = { clickedNote ->
                                     // Navigate to NoteViewScreen with the note ID
-                                    navController.navigate("note_view_screen/${clickedNote.id}")
+                                    navController.navigate(
+                                        Routes.NOTE_VIEW_SCREEN.replace(
+                                            "{${Routes.NOTE_ID_ARG}}",
+                                            clickedNote.id
+                                        )
+                                    )
+                                    // navController.navigate("note_view_screen/${clickedNote.id}")
                                 }
                             )
                         }
@@ -181,7 +188,15 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                                 cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
                                 onClick = { clickedNote ->
                                     // Navigate to NoteViewScreen with the note ID
-                                    navController.navigate("note_view_screen/${clickedNote.id}")
+                                    // Corrected navigation: Use replace to substitute the ID into
+                                    // the route pattern
+                                    navController.navigate(
+                                        Routes.NOTE_VIEW_SCREEN.replace(
+                                            "{${Routes.NOTE_ID_ARG}}",
+                                            clickedNote.id
+                                        )
+                                    )
+                                    // navController.navigate("note_view_screen/${clickedNote.id}")
                                 },
                                 onDeleteClick = { deletedNote ->
                                     println("Delete note: ${deletedNote.title}")
