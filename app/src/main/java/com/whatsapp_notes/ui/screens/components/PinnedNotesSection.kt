@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.components
+package com.whatsapp_notes.ui.screens.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

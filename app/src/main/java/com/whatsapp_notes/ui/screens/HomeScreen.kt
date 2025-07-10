@@ -33,10 +33,10 @@ import androidx.navigation.NavController // Import NavController
 import androidx.navigation.compose.rememberNavController // Required for preview
 import com.whatsapp_notes.data.model.Note
 import com.whatsapp_notes.data.repository.NoteRepository
-import com.whatsapp_notes.ui.components.CategoryFilterButtons
-import com.whatsapp_notes.ui.components.HomeTopBar
-import com.whatsapp_notes.ui.components.NoteCard
-import com.whatsapp_notes.ui.components.SearchBar
+import com.whatsapp_notes.ui.screens.components.CategoryFilterButtons
+import com.whatsapp_notes.ui.screens.components.HomeTopBar
+import com.whatsapp_notes.ui.screens.components.NoteCard
+import com.whatsapp_notes.ui.screens.components.SearchBar
 import com.whatsapp_notes.ui.theme.DarkDefault
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.Gray400

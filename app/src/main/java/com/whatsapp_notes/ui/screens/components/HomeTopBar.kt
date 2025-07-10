@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.components // Updated package name
+package com.whatsapp_notes.ui.screens.components // Updated package name
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package com.whatsapp_notes.ui.components
+package com.whatsapp_notes.ui.screens.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
