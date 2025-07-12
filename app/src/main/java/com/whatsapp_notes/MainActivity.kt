@@ -3,6 +3,8 @@ package com.whatsapp_notes
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,19 +43,47 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController() // Create a NavController
+                    val animDurationMS = 400
 
                     NavHost(
                         navController = navController,
                         startDestination = Routes.HOME_SCREEN // Set the starting screen
                     ) {
                         // Define the route for the Home Screen
-                        composable(Routes.HOME_SCREEN) {
+                        composable(
+                            Routes.HOME_SCREEN,
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Left,
+                                    tween(animDurationMS)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Right,
+                                    tween(animDurationMS)
+                                )
+                            },
+                        ) {
                             // Pass navController to HomeScreen
                             HomeScreen(navController = navController)
                         }
                         // Define the route for the Note View Screen with a noteId argument
                         composable(
                             route = Routes.NOTE_VIEW_SCREEN,
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Left,
+                                    tween(animDurationMS)
+                                )
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection
+                                        .Right,
+                                    tween(animDurationMS)
+                                )
+                            },
 //                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
 //                                type = NavType.StringType // Define argument type
 //                                nullable = true // Allow null for initial testing or if noteId is optional
