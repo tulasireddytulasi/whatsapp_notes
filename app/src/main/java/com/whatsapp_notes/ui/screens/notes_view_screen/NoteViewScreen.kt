@@ -18,6 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.whatsapp_notes.data.model.Message
 import com.whatsapp_notes.data.repository.NoteViewRepository
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageBubble
@@ -26,6 +28,7 @@ import com.whatsapp_notes.ui.screens.notes_view_screen.components.NoteAppBar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteViewScreen(
+    navController: NavController,
 //    messages: List<Message>,
 //    modifier: Modifier = Modifier,
 //    onLinkClick: (String) -> Unit = {}
@@ -38,6 +41,7 @@ fun NoteViewScreen(
                 title = "Notes Viewer", isPinned = true,
                 onBackClick = {
                     println("Search query changed to:")
+                    navController.popBackStack()
                 },
                 onPinClick = {
                     println("Search query changed to:")
@@ -98,5 +102,5 @@ fun NoteViewScreen(
 @Preview(showBackground = true)
 @Composable
 fun NoteViewScreenPreview() {
-    NoteViewScreen()
+    NoteViewScreen(navController = rememberNavController())
 }

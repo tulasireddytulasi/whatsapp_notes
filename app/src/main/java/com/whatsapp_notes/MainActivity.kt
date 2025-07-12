@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         ) {
 //                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
                             // params: noteId = noteId
-                            NoteViewScreen()
+                            NoteViewScreen(navController = navController)
                         }
                     }
                 }
