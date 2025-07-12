@@ -2,8 +2,6 @@ package com.whatsapp_notes.data.repository
 
 import com.whatsapp_notes.data.model.LinkPreview
 import com.whatsapp_notes.data.model.Message
-import com.whatsapp_notes.data.model.Note
-import com.whatsapp_notes.data.model.NoteViewModel
 
 object NoteViewRepository {
 

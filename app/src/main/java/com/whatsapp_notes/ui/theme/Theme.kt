@@ -108,6 +108,7 @@ fun NotesAppTheme(
         typography = Typography, // Typography will be defined in Type.kt
         content = content
     )
+    ChangeSystemBarsColor()
 }
 
 @Composable
