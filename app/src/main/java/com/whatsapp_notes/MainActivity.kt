@@ -48,18 +48,20 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // Define the route for the Home Screen
                         composable(Routes.HOME_SCREEN) {
-                            HomeScreen(navController = navController) // Pass navController to HomeScreen
+                            // Pass navController to HomeScreen
+                            HomeScreen(navController = navController)
                         }
                         // Define the route for the Note View Screen with a noteId argument
                         composable(
                             route = Routes.NOTE_VIEW_SCREEN,
-                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
-                                type = NavType.StringType // Define argument type
-                                nullable = true // Allow null for initial testing or if noteId is optional
-                            })
-                        ) { backStackEntry ->
-                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
-                            NoteViewScreen(noteId = noteId)
+//                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
+//                                type = NavType.StringType // Define argument type
+//                                nullable = true // Allow null for initial testing or if noteId is optional
+//                            })
+                        ) {
+//                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
+                            // params: noteId = noteId
+                            NoteViewScreen()
                         }
                     }
                 }
