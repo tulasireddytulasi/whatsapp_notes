@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import kotlin.random.Random
 
 /**
  * Converts a UTC timestamp string (e.g., "2025-07-13T16:07:00Z") into a human-readable
@@ -49,4 +50,36 @@ fun getRelativeTime(timestampString: String): String {
     } catch (e: Exception) {
         return "Error calculating time: ${e.message}"
     }
+}
+
+/**
+ * Generates a random hexadecimal color code string from a predefined palette
+ * of rainbow colors. This ensures the generated colors are always within
+ * the typical rainbow spectrum (Red, Orange, Yellow, Green, Blue, Indigo, Violet).
+ *
+ * @return A randomly selected hexadecimal color code string from the rainbow palette.
+ */
+private var lastReturnedRainbowColor: String? = null
+
+fun generateRandomRainbowHexColor(): String {
+    val rainbowColors = listOf(
+        "#FF0000", // Red
+        "#FFA500", // Orange
+        "#FFFF00", // Yellow
+        "#008000", // Green
+        "#0000FF", // Blue
+        "#4B0082", // Indigo
+        "#EE82EE"  // Violet
+    )
+
+    var selectedColor: String
+    // Loop until a color different from the last returned one is selected
+    do {
+        val randomIndex = Random.nextInt(rainbowColors.size)
+        selectedColor = rainbowColors[randomIndex]
+    } while (selectedColor == lastReturnedRainbowColor) // Keep picking if it's the same as the last
+
+    // Update the last returned color for the next call
+    lastReturnedRainbowColor = selectedColor
+    return selectedColor
 }

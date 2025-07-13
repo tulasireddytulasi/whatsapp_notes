@@ -58,12 +58,17 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Work", "Personal", "Ideas")
 
-    val allNotes: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
+    val allNotesList: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
+
+    val unPinnedNotes: List<Note> = allNotesList.filter { note ->
+        !note.isPinned // The condition to check if a notes is pinned
+    }
+
     // Logic: Use the 'filter' higher-order function available on Kotlin Collections.
     // The 'filter' function iterates over each element in the 'notes' list
     // and includes it in the resulting list only if the provided lambda expression
     // evaluates to 'true' for that element.
-    val pinnedNotes: List<Note> = allNotes.filter { note ->
+    val pinnedNotes: List<Note> = allNotesList.filter { note ->
         note.isPinned // The condition to check if a notes is pinned
     }
 
@@ -177,7 +182,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                             style = MaterialTheme.typography.labelSmall // font-medium
                         )
                         Text(
-                            text = "${allNotes.size} notes",
+                            text = "${unPinnedNotes.size} notes",
                             fontSize = 12.sp, // text-xs
                             color = Gray500 // text-gray-500
                         )
@@ -188,7 +193,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3 equivalent
                     ) {
-                        allNotes.forEach { note ->
+                        unPinnedNotes.forEach { note ->
                             NoteCard(
                                 note = note,
                                 cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes

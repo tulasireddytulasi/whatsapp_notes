@@ -45,6 +45,8 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.theme.Primary
 import com.whatsapp_notes.ui.theme.Purple300
 import com.whatsapp_notes.ui.theme.Purple900
+import generateRandomHexColor
+import generateRandomRainbowHexColor
 import getRelativeTime
 import java.util.Locale
 
@@ -127,7 +129,8 @@ fun NoteCard(
         ) {
             // Color Strip (only for All Notes)
             if (!note.isPinned && note.colorStripHex != null) {
-                val colorStripColor = Color(android.graphics.Color.parseColor(note.colorStripHex))
+                val colorStripColor = Color(android.graphics.Color.parseColor
+                    (generateRandomRainbowHexColor()))
                 Box(
                     modifier = Modifier
                         .width(4.dp) // width: 4px
