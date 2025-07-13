@@ -20,8 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.whatsapp_notes.data.model.Message
-import com.whatsapp_notes.data.repository.NoteViewRepository
+import com.whatsapp_notes.data.model.Note
+import com.whatsapp_notes.data.model.Thread
+import com.whatsapp_notes.data.repository.NoteRepository
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageBubble
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.NoteAppBar
 
@@ -33,7 +34,14 @@ fun NoteViewScreen(
 //    modifier: Modifier = Modifier,
 //    onLinkClick: (String) -> Unit = {}
 ) {
-    val messages: List<Message> = remember { NoteViewRepository.getMessage() }
+    val allNotes: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
+
+    // Find the Notes with the specified Notes ID
+    val selectedNotes = allNotes.find { it.noteId == "note1" }
+
+    // Get the list of addresses from the found user,
+    // defaulting to an empty list if the user is not found
+    val messages: List<Thread> = remember { selectedNotes?.threads ?: emptyList() }
 
     Scaffold(
         topBar = {

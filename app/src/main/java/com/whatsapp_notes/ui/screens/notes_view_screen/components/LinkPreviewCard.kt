@@ -63,7 +63,8 @@ fun LinkPreviewCard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = preview.url.substringAfter("://").substringBefore("/"), // Extracting hostname
+                    text = preview.imageUrl.substringAfter("://").substringBefore("/"), // Extracting
+                    // hostname
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF64B5F6) // blue-400 equivalent
                 )

@@ -170,7 +170,7 @@ fun NoteCard(
                     }
                 }
                 Text(
-                    text = note.content,
+                    text = note.threads.first().content,
                     fontSize = if (note.isPinned) 12.sp else 14.sp, // text-xs for pinned, text-sm for all
                     color = Gray300, // text-gray-300
                     maxLines = 2,
@@ -230,12 +230,12 @@ fun NoteCardPinnedPreview() {
     NotesAppTheme {
         NoteCard(
             note = Note(
-                id = "1",
+                noteId = "1",
                 title = "Meeting Notes - Q4 Planning",
-                content = "Discussed quarterly goals, budget allocation, and team restructuring. Need to follow up with Sarah about the marketing campaign timeline.",
                 category = "Work",
                 timestamp = "2 hours ago",
-                isPinned = true
+                isPinned = true,
+                threads = emptyList(),
             ),
             cardModifier = Modifier.width(256.dp), // Fixed width for pinned
             onClick = {}
@@ -252,13 +252,13 @@ fun NoteCardAllPreview() {
     NotesAppTheme {
         NoteCard(
             note = Note(
-                id = "4",
+                noteId = "4",
                 title = "Grocery Shopping List",
-                content = "Organic vegetables, almond milk, whole grain bread, free-range eggs, Greek yogurt, fresh berries, quinoa, olive oil, and dark chocolate.",
                 category = "Personal",
                 timestamp = "4 hours ago",
                 isPinned = false,
-                colorStripHex = "#EF4444" // Red-400
+                colorStripHex = "#EF4444",
+                threads = emptyList(),
             ),
             cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
             onClick = {},

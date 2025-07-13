@@ -58,8 +58,14 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Work", "Personal", "Ideas")
 
-    val pinnedNotes: List<Note> = remember { NoteRepository.getPinnedNotes() }
-    val allNotes: List<Note> = remember { NoteRepository.getAllNotes() }
+    val allNotes: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
+    // Logic: Use the 'filter' higher-order function available on Kotlin Collections.
+    // The 'filter' function iterates over each element in the 'notes' list
+    // and includes it in the resulting list only if the provided lambda expression
+    // evaluates to 'true' for that element.
+    val pinnedNotes: List<Note> = allNotes.filter { note ->
+        note.isPinned // The condition to check if a notes is pinned
+    }
 
     Scaffold(
         topBar = {
@@ -145,7 +151,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                                     navController.navigate(
                                         Routes.NOTE_VIEW_SCREEN.replace(
                                             "{${Routes.NOTE_ID_ARG}}",
-                                            clickedNote.id
+                                            clickedNote.noteId
                                         )
                                     )
                                     // navController.navigate("note_view_screen/${clickedNote.id}")
@@ -193,7 +199,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                                     navController.navigate(
                                         Routes.NOTE_VIEW_SCREEN.replace(
                                             "{${Routes.NOTE_ID_ARG}}",
-                                            clickedNote.id
+                                            clickedNote.noteId
                                         )
                                     )
                                     // navController.navigate("note_view_screen/${clickedNote.id}")

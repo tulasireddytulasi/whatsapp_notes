@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.whatsapp_notes.data.model.Message
+import com.whatsapp_notes.data.model.Thread
 import com.whatsapp_notes.data.model.LinkPreview
 
 @Composable
 fun MessageBubble(
-    message: Message,
+    message: Thread,
     modifier: Modifier = Modifier,
     onLinkClick: (String) -> Unit = {}
 ) {
@@ -64,8 +64,8 @@ fun MessageBubble(
 @Preview(showBackground = true)
 @Composable
 fun MessageBubblePreview() {
-    val sampleMessageWithLink = Message(
-        id = "1",
+    val sampleMessageWithLink = Thread(
+        threadId = "1",
         content = "Hey! Just wanted to share this amazing article I found about productivity techniques. It really changed my perspective on time management 🚀 https://example.com/productivity-guide",
         timestamp = "2:34 PM",
         linkPreview = LinkPreview(
@@ -76,8 +76,8 @@ fun MessageBubblePreview() {
         )
     )
 
-    val sampleMessageWithoutLink = Message(
-        id = "2",
+    val sampleMessageWithoutLink = Thread(
+        threadId = "2",
         content = "Meeting notes from today's standup:\n• Sprint goals are on track ✅\n• Need to review API documentation\n• Schedule code review for Friday\n• Team lunch next Tuesday 🍕",
         timestamp = "1:45 PM"
     )

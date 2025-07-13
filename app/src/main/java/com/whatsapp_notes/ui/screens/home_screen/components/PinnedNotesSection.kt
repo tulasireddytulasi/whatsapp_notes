@@ -72,7 +72,10 @@ fun PinnedNotesSection(
 @Composable
 fun PinnedNotesSectionPreview() {
     NotesAppTheme {
-        val mockPinnedNotes = NoteRepository.getPinnedNotes()
+        val allNotes: List<Note> =  NoteRepository.getFakeNotesData().notesList
+        val mockPinnedNotes: List<Note> = allNotes.filter { note ->
+            note.isPinned // The condition to check if a notes is pinned
+        }
         PinnedNotesSection(
             pinnedNotes = mockPinnedNotes,
             onNoteClick = { /* Do nothing for preview */ }

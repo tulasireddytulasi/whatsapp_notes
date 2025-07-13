@@ -90,7 +90,7 @@ fun PinnedNoteCard(
                 }
             }
             Text(
-                text = note.content,
+                text = note.threads.first().content,
                 fontSize = 12.sp, // text-xs
                 color = Gray300, // text-gray-300
                 maxLines = 2,
@@ -146,12 +146,12 @@ fun PinnedNoteCardPreview() {
     NotesAppTheme {
         PinnedNoteCard(
             note = Note(
-                id = "1",
+                noteId = "1",
                 title = "Meeting Notes - Q4 Planning",
-                content = "Discussed quarterly goals, budget allocation, and team restructuring. Need to follow up with Sarah about the marketing campaign timeline.",
                 category = "Work",
                 timestamp = "2 hours ago",
-                isPinned = true
+                isPinned = true,
+                threads = emptyList(),
             ),
             onClick = {}
         )
