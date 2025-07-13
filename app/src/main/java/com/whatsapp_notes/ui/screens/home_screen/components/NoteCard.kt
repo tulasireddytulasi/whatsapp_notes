@@ -45,6 +45,7 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.theme.Primary
 import com.whatsapp_notes.ui.theme.Purple300
 import com.whatsapp_notes.ui.theme.Purple900
+import getRelativeTime
 import java.util.Locale
 
 /**
@@ -211,7 +212,7 @@ fun NoteCard(
                         )
                     }
                     Text(
-                        text = note.timestamp,
+                        text = getRelativeTime(note.timestamp),
                         fontSize = 12.sp, // text-xs
                         color = Gray500 // text-gray-500
                     )

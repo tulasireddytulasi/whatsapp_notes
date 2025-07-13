@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whatsapp_notes.data.model.Thread
 import com.whatsapp_notes.data.model.LinkPreview
+import getRelativeTime
 
 @Composable
 fun MessageBubble(
@@ -52,7 +53,7 @@ fun MessageBubble(
                 horizontalArrangement = Arrangement.End // Pushes children to opposite ends
             ) {
                 Text(
-                    text = message.timestamp,
+                    text = getRelativeTime(message.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF9E9E9E), // Equivalent to gray-500 in dark theme
                 )
