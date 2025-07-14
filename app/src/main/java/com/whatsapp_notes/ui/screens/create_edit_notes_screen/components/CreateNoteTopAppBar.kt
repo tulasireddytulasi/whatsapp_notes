@@ -2,7 +2,6 @@ package com.whatsapp_notes.ui.screens.create_edit_notes_screen.components
 
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,8 +12,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.whatsapp_notes.R
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.viewmodel.CreateEditNoteViewModel
@@ -44,7 +45,7 @@ fun NoteTopAppBar(
         actions = {
             IconButton(onClick = { viewModel.onColorPickerClick() }) { // Handle color picker click
                 Icon(
-                    imageVector = Icons.Filled.AddCircle,
+                    painter = painterResource(id = R.drawable.color_picker),
                     contentDescription = "Choose Color",
                     tint = Color.LightGray
                 )

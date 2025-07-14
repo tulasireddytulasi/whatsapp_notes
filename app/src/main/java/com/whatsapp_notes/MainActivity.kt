@@ -97,15 +97,16 @@ class MainActivity : ComponentActivity() {
                         // Create or Edit Screen
                         composable(
                             Routes.CREATE_EDIT_SCREEN,
-                            exitTransition = {
-                                slideOutOfContainer(
+                            enterTransition = {
+                                slideIntoContainer(
                                     AnimatedContentTransitionScope.SlideDirection.Left,
                                     tween(animDurationMS)
                                 )
                             },
-                            popEnterTransition = {
-                                slideIntoContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Right,
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection
+                                        .Right,
                                     tween(animDurationMS)
                                 )
                             },

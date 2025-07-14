@@ -50,7 +50,7 @@ fun CreateEditNoteScreen(
     // These states will eventually come from a ViewModel
     var noteTitle by remember { mutableStateOf("") }
     var noteDescription by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("work") }
+    var selectedCategory by remember { mutableStateOf("") }
     val categories = listOf("Work", "Personal", "Ideas", "Travel")
 
     // Placeholder for link preview visibility and data
