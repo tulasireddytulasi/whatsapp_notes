@@ -1,6 +1,7 @@
 package com.whatsapp_notes.ui.screens.create_edit_notes_screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,11 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,6 +37,7 @@ import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.CustomB
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.LinkPreviewCard
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.NoteTopAppBar
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.SingleSelectChips
+import com.whatsapp_notes.ui.theme.DarkDarker
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.viewmodel.CreateEditNoteViewModel
@@ -74,12 +74,11 @@ fun CreateEditNoteScreen(
                 contentColor = Color.White,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
+                    .border(1.dp, DarkDarker, RoundedCornerShape(2.dp))
                     .height(56.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Filled.Check, contentDescription = "Save Note")
-                    Spacer(Modifier.padding(horizontal = 4.dp))
-                    Text("Save Note")
+                    Text("Save Note", style = TextStyle(fontSize = 18.sp))
                 }
             }
         }
