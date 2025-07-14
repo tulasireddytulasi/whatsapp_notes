@@ -11,11 +11,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.whatsapp_notes.ui.screens.create_edit_notes_screen.CreateEditNoteScreen
 import com.whatsapp_notes.ui.screens.home_screen.HomeScreen // Import HomeScreen
 import com.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen // Import NoteViewScreen
 import com.whatsapp_notes.ui.theme.NotesAppTheme // Import your custom theme
@@ -27,6 +26,7 @@ object Routes {
     const val HOME_SCREEN = "home_screen"
     const val NOTE_VIEW_SCREEN = "note_view_screen/{noteId}" // Route with argument
     const val NOTE_ID_ARG = "noteId" // Argument key
+    const val CREATE_EDIT_SCREEN = "create_edit_screen"
 }
 
 /**
@@ -92,6 +92,26 @@ class MainActivity : ComponentActivity() {
 //                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
                             // params: noteId = noteId
                             NoteViewScreen(navController = navController)
+                        }
+
+                        // Create or Edit Screen
+                        composable(
+                            Routes.CREATE_EDIT_SCREEN,
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Left,
+                                    tween(animDurationMS)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Right,
+                                    tween(animDurationMS)
+                                )
+                            },
+                        ) {
+                            // Pass navController to HomeScreen
+                            CreateEditNoteScreen(navController = navController)
                         }
                     }
                 }

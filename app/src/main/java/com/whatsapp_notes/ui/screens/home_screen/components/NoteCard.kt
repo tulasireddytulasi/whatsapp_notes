@@ -45,7 +45,6 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.theme.Primary
 import com.whatsapp_notes.ui.theme.Purple300
 import com.whatsapp_notes.ui.theme.Purple900
-import generateRandomHexColor
 import generateRandomRainbowHexColor
 import getRelativeTime
 import java.util.Locale

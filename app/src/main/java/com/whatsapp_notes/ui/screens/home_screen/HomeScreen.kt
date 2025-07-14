@@ -105,7 +105,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* TODO: Handle new note creation */ },
+                onClick = { navController.navigate(Routes.CREATE_EDIT_SCREEN) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 modifier = Modifier.padding(16.dp)
