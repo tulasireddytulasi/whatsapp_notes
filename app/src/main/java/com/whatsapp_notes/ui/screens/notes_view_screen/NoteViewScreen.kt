@@ -1,5 +1,6 @@
 package com.whatsapp_notes.ui.screens.notes_view_screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,22 +34,49 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.whatsapp_notes.data.local.entities.ThreadEntity
+import com.whatsapp_notes.ui.screens.notes_view_screen.components.HorizontalLinkPreviewCard
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageBubble
+import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageInputTextField
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.NoteAppBar
+import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.viewmodel.NotesViewModel
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteViewScreen(
     navController: NavController,
     notesViewModel: NotesViewModel,
+    noteId: String,
 //    messages: List<Message>,
 //    modifier: Modifier = Modifier,
 //    onLinkClick: (String) -> Unit = {}
 ) {
-    notesViewModel.loadAllThreads("note_1752587104794")
+    notesViewModel.loadAllThreads(noteId)
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
 
+   println("Theads 333: ${threads.size}")
+    val linkMetaInfo = notesViewModel.linkMetadata.observeAsState()
+
+    // Placeholder for link preview visibility and data
+    var message by remember { mutableStateOf("") }
+    var showLinkPreview by remember { mutableStateOf(false) } // Will be dynamic based on URL detection
+    var previewImageUrl by remember { mutableStateOf("") }
+    var previewTitle by remember { mutableStateOf("") } // "Example Website Title"
+    var previewDescription by remember { mutableStateOf("") }
+
+    if (linkMetaInfo.value != null) {
+        showLinkPreview = true
+        previewImageUrl = linkMetaInfo.value?.imageUrl.toString()
+        previewTitle = linkMetaInfo.value?.title.toString()
+        previewDescription = linkMetaInfo.value?.description.toString()
+    } else {
+        showLinkPreview = false
+        previewImageUrl = ""
+        previewTitle = ""
+        previewDescription = ""
+    }
 
     Scaffold(
         topBar = {
@@ -62,6 +94,69 @@ fun NoteViewScreen(
                 },
             )
         },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DarkLighter)
+                    .padding(bottom = 8.dp)
+            ) {
+                if(showLinkPreview){
+                    HorizontalLinkPreviewCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        imageUrl = previewImageUrl, // No image
+                        title = previewTitle,
+                        description = previewDescription,
+                        onRemove = {
+                            notesViewModel.clearLinkMetadata()
+                            showLinkPreview = false
+                            previewImageUrl = ""
+                            previewTitle = ""
+                            previewDescription = ""
+                        },
+                    )
+                }
+
+                MessageInputTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    value = message,
+                    onSendMessage = {
+                        // Handle sending the message, e.g., send to ViewModel
+                        println("Sending message: $message")
+                        if(message.isNotEmpty()){
+                            val newThread = ThreadEntity(
+                                noteOwnerId = noteId,
+                                threadId = "thread_${System.currentTimeMillis()}",
+                                imageUrl = previewImageUrl,
+                                linkTitle = previewTitle,
+                                description = previewDescription,
+                                content = message,
+                                timestamp = Instant.now().toString(),
+                            )
+                            notesViewModel.addThread(newThread)
+                            notesViewModel.clearLinkMetadata()
+                            message = ""
+                            showLinkPreview = false
+                            previewImageUrl = ""
+                            previewTitle = ""
+                            previewDescription = ""
+                        }
+                    },
+                    onValueChange = { message = it
+                         notesViewModel.fetchMetadataForText(it)
+                                    },
+                    onMicButtonClick = {
+                        // Handle mic button click, e.g., start voice input
+                        println("Mic button clicked!")
+                    }
+                )
+            }
+
+        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -113,5 +208,9 @@ fun NoteViewScreen(
 @Preview(showBackground = true)
 @Composable
 fun NoteViewScreenPreview() {
-    NoteViewScreen(navController = rememberNavController(), notesViewModel = viewModel())
+    NoteViewScreen(
+        navController = rememberNavController(),
+        notesViewModel = viewModel(),
+        noteId = "",
+    )
 }

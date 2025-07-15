@@ -13,9 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.whatsapp_notes.data.local.database.NotesDatabase
 import com.whatsapp_notes.ui.screens.NotesListScreen
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.CreateEditNoteScreen
@@ -100,17 +102,21 @@ class MainActivity : ComponentActivity() {
                                     tween(animDurationMS)
                                 )
                             },
-//                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
-//                                type = NavType.StringType // Define argument type
-//                                nullable = true // Allow null for initial testing or if noteId is optional
-//                            })
+                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
+                                type = NavType.StringType // Define argument type
+                                nullable = true // Allow null for initial testing or if noteId is optional
+                            })
                         ) {
-//                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
+                                backStackEntry ->
+                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
                             // params: noteId = noteId
-                            NoteViewScreen(
-                                navController = navController,
-                                notesViewModel = notesViewModel,
-                            )
+                            if (noteId != null) {
+                                NoteViewScreen(
+                                    navController = navController,
+                                    notesViewModel = notesViewModel,
+                                    noteId = noteId
+                                )
+                            }
                         }
 
                         // Create or Edit Screen
