@@ -68,8 +68,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
     implementation("io.coil-kt:coil-compose:2.7.0") // For image loading
+
+    // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") // For coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1") // For Android-specific coroutines
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
@@ -80,11 +82,12 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.0")
     implementation("androidx.room:room-ktx:2.6.0") // Kotlin extensions and coroutines support
 
-    // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-
     // Optional: for java.time.Instant support in TypeConverter
     implementation("androidx.room:room-guava:2.6.0") // If you use Guava for Instant converters
+
+    // The Jsoup library used for HTML parsing
+    implementation("org.jsoup:jsoup:1.21.1")
+
+    implementation("androidx.compose.runtime:runtime-livedata:1.8.3")
 
 }

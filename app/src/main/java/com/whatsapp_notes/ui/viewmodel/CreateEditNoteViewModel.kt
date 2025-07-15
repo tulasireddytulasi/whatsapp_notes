@@ -1,9 +1,15 @@
 package com.whatsapp_notes.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
+import kotlinx.coroutines.launch
 
 class CreateEditNoteViewModel : ViewModel() {
 
@@ -98,5 +104,36 @@ class CreateEditNoteViewModel : ViewModel() {
 
     fun dismissNoteSavedModal() {
         showNoteSavedModal = false
+    }
+
+    private val _linkMetadata = MutableLiveData<LinkMetadataFetcher.LinkMetadata?>()
+    val linkMetadata: LiveData<LinkMetadataFetcher.LinkMetadata?> = _linkMetadata
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
+
+
+    fun fetchMetadataForText(text: String) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        viewModelScope.launch {
+            try {
+                // Call the updated function
+                val metadata = LinkMetadataFetcher.fetchFirstAvailableLinkMetadata(text)
+                _linkMetadata.value = metadata
+                if (metadata == null) {
+                    _errorMessage.value = "No link found or no link had sufficient metadata."
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to fetch metadata: ${e.message}"
+                _linkMetadata.value = null
+                Log.e("LinkViewModel", "Error in fetching metadata", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,65 +61,77 @@ fun CreateEditNoteScreen(
     var selectedCategory by remember { mutableStateOf("") }
     val categories = listOf("Work", "Personal", "Ideas", "Travel")
 
+    val linkMetaInfo = viewModel.linkMetadata.observeAsState()
+
     // Placeholder for link preview visibility and data
-    val showLinkPreview by remember { mutableStateOf(true) } // Will be dynamic based on URL detection
-    val previewImageUrl by remember { mutableStateOf("https://readdy.ai/api/search-image?query=modern%20website%20screenshot%20with%20clean%20design&width=800&height=400&seq=1&orientation=landscape") }
-    val previewTitle by remember { mutableStateOf("Example Website Title") }
-    val previewDescription by remember { mutableStateOf("This is a mock description for demonstration purposes. In a real implementation, this would be fetched from the actual URL metadata.") }
+    var showLinkPreview by remember { mutableStateOf(false) } // Will be dynamic based on URL detection
+    var previewImageUrl by remember { mutableStateOf("") }
+    var previewTitle by remember { mutableStateOf("") } // "Example Website Title"
+    var previewDescription by remember { mutableStateOf("") }
     val previewDomain by remember { mutableStateOf("example.com") }
 
-    Scaffold(
-        topBar = {
-            NoteTopAppBar(
-                viewModel = viewModel,
-                onBackClick = { navController.popBackStack() },
-            )
-        },
-        floatingActionButton = {
-            val context = LocalContext.current
-            FloatingActionButton(
-                onClick = {
-                    // If ALL three are null or empty, then we don't proceed.
-                    if (noteTitle.isEmpty() && noteDescription.isEmpty() && selectedCategory.isEmpty()) {
-                        println("Error: Title, description, and category cannot all be empty or null.")
-                        // You should typically show a Toast message or SnackBar to the user here
-                        // rather than just a println, as println messages are not visible to the user.
-                        // For example:
-                         Toast.makeText(context, "Please fill title and description fields", Toast
-                             .LENGTH_SHORT).show()
-                        return@FloatingActionButton // Stop execution of the lambda if validation fails
-                    }
-                  //  notesViewModel.addSampleNote()
-                    val newNote = NoteEntity(
-                        noteId = "note_${System.currentTimeMillis()}",
-                        title = noteTitle,
-                        category = selectedCategory,
-                        timestamp = Instant.now().toString(),
-                        isPinned = false,
-                        colorStripHex = "#FF00FF"
-                    )
-                    val newThread = ThreadEntity(
-                        threadId = "thread_${System.currentTimeMillis()}",
-                        noteOwnerId = newNote.noteId,
-                        content = noteDescription,
-                        timestamp = Instant.now().toString(),
-                        imageUrl = null, linkTitle= null, description = null
-                    )
-                    notesViewModel.addNotes(newNote, newThread)
-                },
-                containerColor = Color(0xFF2979FF), // Primary blue from HTML
-                contentColor = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .border(1.dp, DarkDarker, RoundedCornerShape(2.dp))
-                    .height(56.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Save Note", style = TextStyle(fontSize = 18.sp))
+    if (linkMetaInfo.value != null) {
+        showLinkPreview = true
+        previewImageUrl = linkMetaInfo.value?.imageUrl.toString()
+        previewTitle = linkMetaInfo.value?.title.toString()
+        previewDescription = linkMetaInfo.value?.description.toString()
+    } else {
+        showLinkPreview = false
+        previewImageUrl = ""
+        previewTitle = ""
+        previewDescription = ""
+    }
+
+    Scaffold(topBar = {
+        NoteTopAppBar(
+            viewModel = viewModel,
+            onBackClick = { navController.popBackStack() },
+        )
+    }, floatingActionButton = {
+        val context = LocalContext.current
+        FloatingActionButton(
+            onClick = {
+                // If ALL three are null or empty, then we don't proceed.
+                if (noteTitle.isEmpty() || noteDescription.isEmpty() || selectedCategory.isEmpty()) {
+                    println("Error: Title, description, and category cannot all be empty or null.")
+                    Toast.makeText(
+                        context, "Please fill title, description & category fields", Toast
+                            .LENGTH_SHORT
+                    ).show()
+                    return@FloatingActionButton // Stop execution of the lambda if validation fails
                 }
+                //  notesViewModel.addSampleNote()
+                val newNote = NoteEntity(
+                    noteId = "note_${System.currentTimeMillis()}",
+                    title = noteTitle,
+                    category = selectedCategory,
+                    timestamp = Instant.now().toString(),
+                    isPinned = false,
+                    colorStripHex = "#FF00FF"
+                )
+                val newThread = ThreadEntity(
+                    threadId = "thread_${System.currentTimeMillis()}",
+                    noteOwnerId = newNote.noteId,
+                    content = noteDescription,
+                    timestamp = Instant.now().toString(),
+                    imageUrl = previewImageUrl,
+                    linkTitle = previewTitle,
+                    description = previewDescription
+                )
+                notesViewModel.addNotes(newNote, newThread)
+            },
+            containerColor = Color(0xFF2979FF), // Primary blue from HTML
+            contentColor = Color.White,
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .border(1.dp, DarkDarker, RoundedCornerShape(2.dp))
+                .height(56.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Save Note", style = TextStyle(fontSize = 18.sp))
             }
         }
-    ) { paddingValues ->
+    }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -139,8 +152,7 @@ fun CreateEditNoteScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleSelectChips(
-                options = categories,
-                showLeadingIcon = false
+                options = categories, showLeadingIcon = false
             ) { selectedOption ->
                 // Handle the selected option here
                 println("Selected difficulty: $selectedOption")
@@ -165,25 +177,24 @@ fun CreateEditNoteScreen(
             Spacer(modifier = Modifier.height(0.dp))
 
             // Link Preview Section (conditionally visible)
-            if (!showLinkPreview) {
-                LinkPreviewCard(
-                    imageUrl = previewImageUrl,
+            if (showLinkPreview) {
+                LinkPreviewCard(imageUrl = previewImageUrl,
                     title = previewTitle,
                     description = previewDescription,
                     domain = previewDomain,
-                    onRemove = { /* Handle remove preview */ }
-                )
+                    onRemove = { /* Handle remove preview */ })
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             // Note Description Input
             CustomBasicTextField(
                 value = noteDescription,
-                onValueChange = { noteDescription = it },
+                onValueChange = {
+                    noteDescription = it
+                    viewModel.fetchMetadataForText(it)
+                },
                 textStyleData = TextStyle(
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp
+                    color = Color.White, fontSize = 16.sp, lineHeight = 24.sp
                 ),
                 placeholder = "Type your thoughts...",
                 modifier = Modifier
