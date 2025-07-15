@@ -80,7 +80,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                     .background(DarkLighter)
                     .padding(bottom = 8.dp)
             ) {
-                HomeTopBar(onProfileClick = { /* TODO: Handle profile click navigation */ })
+                HomeTopBar(onProfileClick = { navController.navigate(Routes.NOTES_LIST_SCREEN) })
 
                 SearchBar(
                     modifier = Modifier.padding(horizontal = 16.dp),

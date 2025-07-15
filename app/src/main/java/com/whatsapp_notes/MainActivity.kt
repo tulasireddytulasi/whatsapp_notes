@@ -3,6 +3,7 @@ package com.whatsapp_notes
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,10 +15,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.whatsapp_notes.data.local.database.NotesDatabase
+import com.whatsapp_notes.ui.screens.NotesListScreen
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.CreateEditNoteScreen
-import com.whatsapp_notes.ui.screens.home_screen.HomeScreen // Import HomeScreen
-import com.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen // Import NoteViewScreen
-import com.whatsapp_notes.ui.theme.NotesAppTheme // Import your custom theme
+import com.whatsapp_notes.ui.screens.home_screen.HomeScreen
+import com.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen
+import com.whatsapp_notes.ui.theme.NotesAppTheme
+import com.whatsapp_notes.ui.viewmodel.NotesViewModel
+import com.whatsapp_notes.ui.viewmodel.NotesViewModelFactory
 
 /**
  * Object to hold navigation routes.
@@ -27,6 +32,7 @@ object Routes {
     const val NOTE_VIEW_SCREEN = "note_view_screen/{noteId}" // Route with argument
     const val NOTE_ID_ARG = "noteId" // Argument key
     const val CREATE_EDIT_SCREEN = "create_edit_screen"
+    const val NOTES_LIST_SCREEN = "notes_list_screen"
 }
 
 /**
@@ -34,6 +40,12 @@ object Routes {
  * This activity serves as the entry point and hosts the Jetpack Compose UI.
  */
 class MainActivity : ComponentActivity() {
+
+    private val database by lazy { NotesDatabase.getInstance(applicationContext) }
+    private val notesViewModel: NotesViewModel by viewModels {
+        NotesViewModelFactory(database.noteDao(), database.threadDao())
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -112,7 +124,14 @@ class MainActivity : ComponentActivity() {
                             },
                         ) {
                             // Pass navController to HomeScreen
-                            CreateEditNoteScreen(navController = navController)
+                            CreateEditNoteScreen(
+                                navController = navController,
+                                notesViewModel = notesViewModel
+                            )
+                        }
+
+                        composable(Routes.NOTES_LIST_SCREEN){
+                            NotesListScreen(viewModel = notesViewModel)
                         }
                     }
                 }
