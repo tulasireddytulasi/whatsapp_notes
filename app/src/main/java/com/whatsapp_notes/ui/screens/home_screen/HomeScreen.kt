@@ -124,44 +124,46 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
         ) {
             // Pinned Notes Section
             item {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Pinned",
-                            fontSize = 14.sp, // text-sm
-                            color = Gray400, // text-gray-400
-                            style = MaterialTheme.typography.labelSmall // font-medium
-                        )
-                        Text(
-                            text = "${pinnedNotes.size} notes",
-                            fontSize = 12.sp, // text-xs
-                            color = Gray500 // text-gray-500
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp) // gap-3 equivalent
-                    ) {
-                        items(pinnedNotes) { note ->
-                            NoteCard(
-                                noteThread = note,
-                                cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
-                                onClick = { clickedNote ->
-                                    // Navigate to NoteViewScreen with the note ID
-                                    navController.navigate(
-                                        Routes.NOTE_VIEW_SCREEN.replace(
-                                            "{${Routes.NOTE_ID_ARG}}",
-                                            clickedNote.noteId
-                                        )
-                                    )
-                                    // navController.navigate("note_view_screen/${clickedNote.id}")
-                                }
+                if (pinnedNotes.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Pinned",
+                                fontSize = 14.sp, // text-sm
+                                color = Gray400, // text-gray-400
+                                style = MaterialTheme.typography.labelSmall // font-medium
                             )
+                            Text(
+                                text = "${pinnedNotes.size} notes",
+                                fontSize = 12.sp, // text-xs
+                                color = Gray500 // text-gray-500
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp) // gap-3 equivalent
+                        ) {
+                            items(pinnedNotes) { note ->
+                                NoteCard(
+                                    noteThread = note,
+                                    cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
+                                    onClick = { clickedNote ->
+                                        // Navigate to NoteViewScreen with the note ID
+                                        navController.navigate(
+                                            Routes.NOTE_VIEW_SCREEN.replace(
+                                                "{${Routes.NOTE_ID_ARG}}",
+                                                clickedNote.noteId
+                                            )
+                                        )
+                                        // navController.navigate("note_view_screen/${clickedNote.id}")
+                                    }
+                                )
+                            }
                         }
                     }
                 }
