@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.whatsapp_notes.Routes
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.CustomBasicTextField
@@ -119,6 +120,13 @@ fun CreateEditNoteScreen(
                     description = previewDescription
                 )
                 notesViewModel.addNotes(newNote, newThread)
+
+                navController.navigate(
+                    Routes.NOTE_VIEW_SCREEN.replace(
+                        "{${Routes.NOTE_ID_ARG}}",
+                        newNote.noteId
+                    )
+                )
             },
             containerColor = Color(0xFF2979FF), // Primary blue from HTML
             contentColor = Color.White,
