@@ -33,7 +33,7 @@ import com.whatsapp_notes.ui.viewmodel.NotesViewModel
 @Composable
 fun NotesListScreen(viewModel: NotesViewModel) {
     // Change the collection type
-    val notesWithLastThread by viewModel.notesWithLastThread.collectAsState(initial = emptyList())
+    val notesWithLastThread by viewModel.notesWithThreads.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {

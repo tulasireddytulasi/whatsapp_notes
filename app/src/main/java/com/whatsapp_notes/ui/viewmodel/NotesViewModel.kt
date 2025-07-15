@@ -15,8 +15,8 @@ import java.time.Instant
 
 class NotesViewModel(private val noteDao: NoteDao, private val threadDao: ThreadDao) : ViewModel() {
 
-    private val _notesWithLastThread = MutableStateFlow<List<NoteWithThreads>>(emptyList())
-    val notesWithLastThread: StateFlow<List<NoteWithThreads>> = _notesWithLastThread
+    private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
+    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads
 
     init {
         loadNotesWithLastThreadContent()
@@ -29,7 +29,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             // If you want continuous updates, your DAO query should return Flow<Map<NoteEntity, String?>>
             // and then collectAsState will automatically update.
             val data = noteDao.getAllNotesWithThreads()
-            _notesWithLastThread.value = data
+            _notesWithThreads.value = data
         }
     }
 
