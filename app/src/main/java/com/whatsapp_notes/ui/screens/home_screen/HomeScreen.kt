@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,11 +30,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController // Import NavController
-import androidx.navigation.compose.rememberNavController // Required for preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.whatsapp_notes.Routes
-import com.whatsapp_notes.data.model.Note
-import com.whatsapp_notes.data.repository.NoteRepository
+import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.ui.screens.home_screen.components.CategoryFilterButtons
 import com.whatsapp_notes.ui.screens.home_screen.components.HomeTopBar
 import com.whatsapp_notes.ui.screens.home_screen.components.NoteCard
@@ -43,6 +44,7 @@ import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.Gray400
 import com.whatsapp_notes.ui.theme.Gray500
 import com.whatsapp_notes.ui.theme.NotesAppTheme
+import com.whatsapp_notes.ui.viewmodel.NotesViewModel
 
 /**
  * Composable function for the main Home Screen layout of the Notes App.
@@ -53,23 +55,21 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) { // Add navController as a parameter
+fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { // Add navController as a parameter
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = listOf("All", "Work", "Personal", "Ideas")
-
-    val allNotesList: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
-
-    val unPinnedNotes: List<Note> = allNotesList.filter { note ->
-        !note.isPinned // The condition to check if a notes is pinned
+    val notesWithLastThread by notesViewModel.notesWithThreads.collectAsState(initial = emptyList())
+    val unPinnedNotes: List<NoteWithThreads> = notesWithLastThread.filter { notes ->
+        !notes.note.isPinned // The condition to check if a notes is pinned
     }
 
     // Logic: Use the 'filter' higher-order function available on Kotlin Collections.
     // The 'filter' function iterates over each element in the 'notes' list
     // and includes it in the resulting list only if the provided lambda expression
     // evaluates to 'true' for that element.
-    val pinnedNotes: List<Note> = allNotesList.filter { note ->
-        note.isPinned // The condition to check if a notes is pinned
+    val pinnedNotes: List<NoteWithThreads> = notesWithLastThread.filter { notes ->
+        notes.note.isPinned // The condition to check if a notes is pinned
     }
 
     Scaffold(
@@ -149,7 +149,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                     ) {
                         items(pinnedNotes) { note ->
                             NoteCard(
-                                note = note,
+                                noteThread = note,
                                 cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
                                 onClick = { clickedNote ->
                                     // Navigate to NoteViewScreen with the note ID
@@ -195,7 +195,7 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
                     ) {
                         unPinnedNotes.forEach { note ->
                             NoteCard(
-                                note = note,
+                                noteThread = note,
                                 cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
                                 onClick = { clickedNote ->
                                     // Navigate to NoteViewScreen with the note ID
@@ -233,6 +233,6 @@ fun HomeScreen(navController: NavController) { // Add navController as a paramet
 fun HomeScreenPreview() {
     NotesAppTheme {
         // For preview, provide a mock NavController
-        HomeScreen(navController = rememberNavController())
+        HomeScreen(navController = rememberNavController(), notesViewModel = viewModel())
     }
 }

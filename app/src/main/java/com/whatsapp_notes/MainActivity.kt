@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -78,7 +79,10 @@ class MainActivity : ComponentActivity() {
                             },
                         ) {
                             // Pass navController to HomeScreen
-                            HomeScreen(navController = navController)
+                            HomeScreen(
+                                navController = navController,
+                                notesViewModel = notesViewModel,
+                            )
                         }
                         // Define the route for the Note View Screen with a noteId argument
                         composable(
@@ -153,6 +157,6 @@ fun DefaultPreview() {
     NotesAppTheme {
         // For preview, we can just show the HomeScreen directly
         // In a real app, you might mock NavController if needed for complex previews
-        HomeScreen(navController = rememberNavController())
+        HomeScreen(navController = rememberNavController(), notesViewModel = viewModel())
     }
 }

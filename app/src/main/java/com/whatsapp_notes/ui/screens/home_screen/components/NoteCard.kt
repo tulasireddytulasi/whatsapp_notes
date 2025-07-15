@@ -32,6 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whatsapp_notes.data.local.entities.NoteEntity
+import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.data.model.Note
 import com.whatsapp_notes.ui.theme.Blue300
 import com.whatsapp_notes.ui.theme.Blue900
@@ -61,12 +63,15 @@ import java.util.Locale
  */
 @Composable
 fun NoteCard(
-    note: Note,
+    noteThread: NoteWithThreads,
     @SuppressLint("ModifierParameter") cardModifier: Modifier = Modifier, // Modifier to control card width
-    onClick: (Note) -> Unit,
-    onDeleteClick: (Note) -> Unit = {}, // Default empty lambda for optional actions
-    onArchiveClick: (Note) -> Unit = {}  // Default empty lambda for optional actions
+    onClick: (NoteEntity) -> Unit,
+    onDeleteClick: (NoteEntity) -> Unit = {}, // Default empty lambda for optional actions
+    onArchiveClick: (NoteEntity) -> Unit = {}  // Default empty lambda for optional actions
 ) {
+    val note = noteThread.note
+    val thread = noteThread.threads.first().content
+
     Box(
         modifier = cardModifier
             .clip(RoundedCornerShape(8.dp)) // rounded-md equivalent
@@ -173,7 +178,7 @@ fun NoteCard(
                     }
                 }
                 Text(
-                    text = note.threads.first().content,
+                    text = thread,
                     fontSize = if (note.isPinned) 12.sp else 14.sp, // text-xs for pinned, text-sm for all
                     color = Gray300, // text-gray-300
                     maxLines = 2,
@@ -232,13 +237,16 @@ fun NoteCard(
 fun NoteCardPinnedPreview() {
     NotesAppTheme {
         NoteCard(
-            note = Note(
-                noteId = "1",
-                title = "Meeting Notes - Q4 Planning",
-                category = "Work",
-                timestamp = "2 hours ago",
-                isPinned = true,
-                threads = emptyList(),
+            noteThread = NoteWithThreads(
+                note = NoteEntity(
+                    noteId = "4",
+                    title = "Grocery Shopping List",
+                    category = "Personal",
+                    timestamp = "4 hours ago",
+                    isPinned = true,
+                    colorStripHex = "#EF4444",
+                ),
+                threads = emptyList()
             ),
             cardModifier = Modifier.width(256.dp), // Fixed width for pinned
             onClick = {}
@@ -254,14 +262,16 @@ fun NoteCardPinnedPreview() {
 fun NoteCardAllPreview() {
     NotesAppTheme {
         NoteCard(
-            note = Note(
-                noteId = "4",
-                title = "Grocery Shopping List",
-                category = "Personal",
-                timestamp = "4 hours ago",
-                isPinned = false,
-                colorStripHex = "#EF4444",
-                threads = emptyList(),
+            noteThread = NoteWithThreads(
+                note = NoteEntity(
+                    noteId = "4",
+                    title = "Grocery Shopping List",
+                    category = "Personal",
+                    timestamp = "4 hours ago",
+                    isPinned = false,
+                    colorStripHex = "#EF4444",
+                ),
+                threads = emptyList()
             ),
             cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
             onClick = {},
