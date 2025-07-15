@@ -1,15 +1,23 @@
 package com.whatsapp_notes.ui.screens.notes_view_screen
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,30 +26,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.whatsapp_notes.data.model.Note
-import com.whatsapp_notes.data.model.Thread
-import com.whatsapp_notes.data.repository.NoteRepository
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageBubble
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.NoteAppBar
+import com.whatsapp_notes.ui.viewmodel.NotesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteViewScreen(
     navController: NavController,
+    notesViewModel: NotesViewModel,
 //    messages: List<Message>,
 //    modifier: Modifier = Modifier,
 //    onLinkClick: (String) -> Unit = {}
 ) {
-    val allNotes: List<Note> = remember { NoteRepository.getFakeNotesData().notesList }
+    notesViewModel.loadAllThreads("note_1752587104794")
+    val threads by notesViewModel.threads.collectAsState(initial = emptyList())
 
-    // Find the Notes with the specified Notes ID
-    val selectedNotes = allNotes.find { it.noteId == "note1" }
-
-    // Get the list of addresses from the found user,
-    // defaulting to an empty list if the user is not found
-    val messages: List<Thread> = remember { selectedNotes?.threads ?: emptyList() }
 
     Scaffold(
         topBar = {
@@ -68,8 +71,8 @@ fun NoteViewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp) // Internal padding
         ) {
-            items(messages) { message ->
-                MessageBubble(message = message, onLinkClick = {})
+            items(threads) { thread ->
+                MessageBubble(thread = thread, onLinkClick = {})
             }
 
             item {
@@ -110,5 +113,5 @@ fun NoteViewScreen(
 @Preview(showBackground = true)
 @Composable
 fun NoteViewScreenPreview() {
-    NoteViewScreen(navController = rememberNavController())
+    NoteViewScreen(navController = rememberNavController(), notesViewModel = viewModel())
 }

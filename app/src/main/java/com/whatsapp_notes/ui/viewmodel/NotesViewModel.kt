@@ -18,6 +18,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
     val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads
 
+    private val _threads = MutableStateFlow<List<ThreadEntity>>(emptyList())
+    val threads: StateFlow<List<ThreadEntity>> = _threads
+
+
     init {
         loadNotesWithLastThreadContent()
     }
@@ -30,6 +34,13 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             // and then collectAsState will automatically update.
             val data = noteDao.getAllNotesWithThreads()
             _notesWithThreads.value = data
+        }
+    }
+
+     fun loadAllThreads(noteId : String) {
+        viewModelScope.launch {
+            val data = threadDao.getThreadsForNote(noteId)
+            _threads.value = data
         }
     }
 

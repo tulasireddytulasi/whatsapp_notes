@@ -2,7 +2,13 @@ package com.whatsapp_notes.ui.screens.notes_view_screen.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -13,13 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.whatsapp_notes.data.model.Thread
+import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.model.LinkPreview
 import getRelativeTime
 
 @Composable
 fun MessageBubble(
-    message: Thread,
+    thread: ThreadEntity,
     modifier: Modifier = Modifier,
     onLinkClick: (String) -> Unit = {}
 ) {
@@ -35,13 +41,19 @@ fun MessageBubble(
             modifier = Modifier.padding(12.dp),
         ) {
             Text(
-                text = message.content,
+                text = thread.content,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White,
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
             )
 
-            message.linkPreview?.let { preview ->
+            thread.imageUrl?.let {
+                val preview =  LinkPreview(
+                    title = thread.linkTitle!!,
+                    description = thread.description!!,
+                    imageUrl = thread.imageUrl,
+                    url = thread.imageUrl,
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 LinkPreviewCard(preview = preview, onLinkClick = onLinkClick)
             }
@@ -53,7 +65,7 @@ fun MessageBubble(
                 horizontalArrangement = Arrangement.End // Pushes children to opposite ends
             ) {
                 Text(
-                    text = getRelativeTime(message.timestamp),
+                    text = getRelativeTime(thread.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF9E9E9E), // Equivalent to gray-500 in dark theme
                 )
@@ -65,27 +77,29 @@ fun MessageBubble(
 @Preview(showBackground = true)
 @Composable
 fun MessageBubblePreview() {
-    val sampleMessageWithLink = Thread(
+    val sampleMessageWithLink = ThreadEntity(
         threadId = "1",
+        noteOwnerId = "",
         content = "Hey! Just wanted to share this amazing article I found about productivity techniques. It really changed my perspective on time management 🚀 https://example.com/productivity-guide",
         timestamp = "2:34 PM",
-        linkPreview = LinkPreview(
-            imageUrl = "https://readdy.ai/api/search-image?query=productivity%20workspace%20with%20laptop%2C%20notebook%2C%20coffee%20cup%2C%20clean%20desk%20setup%2C%20modern%20office%20environment%2C%20natural%20lighting%2C%20professional%20atmosphere&width=300&height=160&seq=productivity1&orientation=landscape",
-            title = "The Ultimate Guide to Productivity",
-            description = "Discover proven strategies to boost your productivity and achieve more in less time. Learn from experts and transform your daily routine.",
-            url = "https://example.com/productivity-guide"
-        )
+        imageUrl = "https://readdy.ai/api/search-image?query=productivity%20workspace%20with%20laptop%2C%20notebook%2C%20coffee%20cup%2C%20clean%20desk%20setup%2C%20modern%20office%20environment%2C%20natural%20lighting%2C%20professional%20atmosphere&width=300&height=160&seq=productivity1&orientation=landscape",
+        linkTitle = "The Ultimate Guide to Productivity",
+        description = "Discover proven strategies to boost your productivity and achieve more in less time. Learn from experts and transform your daily routine.",
     )
 
-    val sampleMessageWithoutLink = Thread(
+    val sampleMessageWithoutLink = ThreadEntity(
         threadId = "2",
-        content = "Meeting notes from today's standup:\n• Sprint goals are on track ✅\n• Need to review API documentation\n• Schedule code review for Friday\n• Team lunch next Tuesday 🍕",
-        timestamp = "1:45 PM"
+        noteOwnerId = "",
+        content = "Meeting notes from today's 🍕",
+        timestamp = "1:45 PM",
+        imageUrl = null,
+        description = null,
+        linkTitle = null
     )
 
     Column(modifier = Modifier.padding(16.dp)) {
-        MessageBubble(message = sampleMessageWithLink)
+        MessageBubble(thread = sampleMessageWithLink)
         Spacer(modifier = Modifier.height(16.dp))
-        MessageBubble(message = sampleMessageWithoutLink)
+        MessageBubble(thread = sampleMessageWithoutLink)
     }
 }
