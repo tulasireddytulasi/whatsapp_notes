@@ -9,25 +9,16 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
     @Query("SELECT * FROM notes")
-    suspend fun getAllNotes(): List<NoteEntity>
+    fun getAllNotes(): Flow<List<NoteEntity>> // Changed to Flow
 
     @Transaction
     @Query("SELECT * FROM notes")
-    suspend fun getAllNotesWithThreads(): List<NoteWithThreads>
-
-//    @Query(
-//        """
-//        SELECT
-//            n.*,
-//            (SELECT t.content FROM threads AS t WHERE t.noteOwnerId = n.noteId ORDER BY t.timestamp DESC LIMIT 1) AS lastThreadContent
-//        FROM notes AS n
-//        """
-//    )
-//    fun getAllNotesWithLastThreadContent(): Map<NoteEntity, String?>
+    fun getAllNotesWithThreads(): Flow<List<NoteWithThreads>> // Changed to Flow
 
     @Query(
         """
@@ -37,18 +28,17 @@ interface NoteDao {
         FROM notes AS n
         """
     )
-    // Change the return type here
-    suspend fun getAllNotesWithLastThread(): List<NoteWithLastThread>
+    fun getAllNotesWithLastThread(): Flow<List<NoteWithLastThread>> // Changed to Flow
 
     @Query("SELECT * FROM notes WHERE noteId = :id")
-    suspend fun getNoteById(id: String): NoteEntity?
+    suspend fun getNoteById(id: String): NoteEntity? // Still suspend as it's a one-time fetch
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNote(note: NoteEntity)
+    suspend fun insertNote(note: NoteEntity) // Still suspend for write operations
 
     @Update
-    suspend fun updateNote(note: NoteEntity)
+    suspend fun updateNote(note: NoteEntity) // Still suspend for write operations
 
     @Delete
-    suspend fun deleteNote(note: NoteEntity)
+    suspend fun deleteNote(note: NoteEntity) // Still suspend for write operations
 }

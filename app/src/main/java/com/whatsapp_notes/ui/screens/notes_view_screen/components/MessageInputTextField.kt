@@ -44,7 +44,7 @@ fun MessageInputTextField(
         placeholder = { Text("Type a message...") },
         shape = RoundedCornerShape(8.dp), // Rounded corners
         colors = OutlinedTextFieldDefaults.colors(
-            cursorColor = Color.Black, // Customize cursor color
+            cursorColor = Color.White, // Customize cursor color
             focusedBorderColor = Color.Gray, // Customize border color if needed
             unfocusedBorderColor = Color.LightGray,
         ),

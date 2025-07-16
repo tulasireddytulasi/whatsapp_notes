@@ -14,17 +14,45 @@ import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.Instant
 
 class NotesViewModel(private val noteDao: NoteDao, private val threadDao: ThreadDao) : ViewModel() {
 
     private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
-    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads
+    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads.asStateFlow()
 
     private val _threads = MutableStateFlow<List<ThreadEntity>>(emptyList())
-    val threads: StateFlow<List<ThreadEntity>> = _threads
+    val threads: StateFlow<List<ThreadEntity>> = _threads.asStateFlow()
 
+    // State for the message input field
+    private val _messageInput = MutableStateFlow("")
+    val messageInput: StateFlow<String> = _messageInput.asStateFlow()
+
+    // State for link metadata
+    private val _linkMetadata = MutableLiveData<LinkMetadataFetcher.LinkMetadata?>()
+    val linkMetadata: LiveData<LinkMetadataFetcher.LinkMetadata?> = _linkMetadata
+
+    private val _isLoadingLinkMetadata = MutableLiveData(false)
+    val isLoadingLinkMetadata: LiveData<Boolean> = _isLoadingLinkMetadata
+
+    private val _linkMetadataErrorMessage = MutableLiveData<String?>()
+    val linkMetadataErrorMessage: LiveData<String?> = _linkMetadataErrorMessage
+
+    // Consolidated state for link preview visibility and data
+    private val _showLinkPreview = MutableStateFlow(false)
+    val showLinkPreview: StateFlow<Boolean> = _showLinkPreview.asStateFlow()
+
+    private val _previewImageUrl = MutableStateFlow<String?>(null)
+    val previewImageUrl: StateFlow<String?> = _previewImageUrl.asStateFlow()
+
+    private val _previewTitle = MutableStateFlow<String?>(null)
+    val previewTitle: StateFlow<String?> = _previewTitle.asStateFlow()
+
+    private val _previewDescription = MutableStateFlow<String?>(null)
+    val previewDescription: StateFlow<String?> = _previewDescription.asStateFlow()
 
     init {
         loadNotesWithLastThreadContent()
@@ -32,24 +60,24 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
 
     private fun loadNotesWithLastThreadContent() {
         viewModelScope.launch {
-            // Observe changes from the database (if you want live updates)
-            // For simplicity, this example just fetches once.
-            // If you want continuous updates, your DAO query should return Flow<Map<NoteEntity, String?>>
-            // and then collectAsState will automatically update.
-            val data = noteDao.getAllNotesWithThreads()
-            _notesWithThreads.value = data
+            noteDao.getAllNotesWithThreads().collectLatest { data ->
+                _notesWithThreads.value = data
+            }
         }
     }
 
-     fun loadAllThreads(noteId : String) {
+    fun loadAllThreads(noteId: String) {
         viewModelScope.launch {
-            val data = threadDao.getThreadsForNote(noteId)
-            _threads.value = data
+            threadDao.getThreadsForNote(noteId).collectLatest { data ->
+                _threads.value = data
+            }
         }
     }
 
-    // You might also add functions here to insert, update, or delete notes for your app
-    // Example:
+    fun updateMessageInput(newValue: String) {
+        _messageInput.value = newValue
+        fetchMetadataForText(newValue)
+    }
 
     fun addSampleNote() {
         viewModelScope.launch {
@@ -69,8 +97,8 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 timestamp = Instant.now().toString(),
                 imageUrl = null, linkTitle = null, description = null
             )
-            threadDao.insertThreads(listOf(newThread)) // Assuming you have a way to insert threads via NoteDao or directly via ThreadDao
-            loadNotesWithLastThreadContent() // Refresh the data
+            threadDao.insertThreads(listOf(newThread))
+            // No need to call loadNotesWithLastThreadContent() if using Flow from DAO
         }
     }
 
@@ -78,51 +106,70 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         viewModelScope.launch {
             noteDao.insertNote(noteEntity)
             threadDao.insertThreads(listOf(threadEntity))
-            loadNotesWithLastThreadContent()
+            // No need to call loadNotesWithLastThreadContent() if using Flow from DAO
         }
     }
 
     fun addThread(threadEntity: ThreadEntity) {
         viewModelScope.launch {
             threadDao.insertThread(threadEntity)
-            loadAllThreads(threadEntity.noteOwnerId)
+            // loadAllThreads(threadEntity.noteOwnerId) // Flow from DAO will update automatically
         }
     }
 
-    private val _linkMetadata = MutableLiveData<LinkMetadataFetcher.LinkMetadata?>()
-    val linkMetadata: LiveData<LinkMetadataFetcher.LinkMetadata?> = _linkMetadata
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> = _errorMessage
-
-
     fun clearLinkMetadata() {
         _linkMetadata.value = null
+        _showLinkPreview.value = false
+        _previewImageUrl.value = null
+        _previewTitle.value = null
+        _previewDescription.value = null
     }
-    fun fetchMetadataForText(text: String) {
-        _isLoading.value = true
-        _errorMessage.value = null
+
+    private fun fetchMetadataForText(text: String) {
+        _isLoadingLinkMetadata.value = true
+        _linkMetadataErrorMessage.value = null
         viewModelScope.launch {
             try {
-                // Call the updated function
                 val metadata = LinkMetadataFetcher.fetchFirstAvailableLinkMetadata(text)
                 _linkMetadata.value = metadata
-                if (metadata == null) {
-                    _errorMessage.value = "No link found or no link had sufficient metadata."
+                if (metadata != null) {
+                    _showLinkPreview.value = true
+                    _previewImageUrl.value = metadata.imageUrl
+                    _previewTitle.value = metadata.title
+                    _previewDescription.value = metadata.description
+                } else {
+                    clearLinkMetadata() // Clear if no metadata found
+                    _linkMetadataErrorMessage.value = "No link found or no link had sufficient metadata."
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Failed to fetch metadata: ${e.message}"
-                _linkMetadata.value = null
+                _linkMetadataErrorMessage.value = "Failed to fetch metadata: ${e.message}"
+                clearLinkMetadata()
                 Log.e("LinkViewModel", "Error in fetching metadata", e)
             } finally {
-                _isLoading.value = false
+                _isLoadingLinkMetadata.value = false
             }
         }
     }
 
+    fun sendMessage(noteId: String) {
+        val currentMessage = _messageInput.value
+        if (currentMessage.isNotEmpty()) {
+            viewModelScope.launch {
+                val newThread = ThreadEntity(
+                    noteOwnerId = noteId,
+                    threadId = "thread_${System.currentTimeMillis()}",
+                    imageUrl = _previewImageUrl.value,
+                    linkTitle = _previewTitle.value,
+                    description = _previewDescription.value,
+                    content = currentMessage,
+                    timestamp = Instant.now().toString(),
+                )
+                addThread(newThread)
+                _messageInput.value = "" // Clear message input
+                clearLinkMetadata() // Clear link preview
+            }
+        }
+    }
 }
 
 class NotesViewModelFactory(private val noteDao: NoteDao, private val threadDao: ThreadDao) :
