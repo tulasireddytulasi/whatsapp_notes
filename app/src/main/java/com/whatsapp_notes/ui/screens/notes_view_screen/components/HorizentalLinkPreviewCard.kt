@@ -57,6 +57,7 @@ fun HorizontalLinkPreviewCard(
         val imageModifier = Modifier
             .weight(0.2f) // 30% width
             .aspectRatio(1f) // Square shape (height = width)
+            .padding(2.dp)
             .clip(RoundedCornerShape(4.dp)) // Rounded corners for the image
             .background(Color.Gray) // Placeholder background if image not loaded
 
@@ -104,9 +105,10 @@ fun HorizontalLinkPreviewCard(
                     fontSize = 12.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1, // Usually 1 line if a close button is present
+                    maxLines = 2, // Usually 1 line if a close button is present
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(0.8f) // 80% width for text
+                    modifier = Modifier.weight(0.8f), // 80% width for text
+                    lineHeight = 14.sp
                 )
                 IconButton(
                     onClick = onRemove, // Call the provided lambda
@@ -127,8 +129,9 @@ fun HorizontalLinkPreviewCard(
                 text = description,
                 fontSize = 10.sp,
                 color = Color.LightGray,
-                maxLines = 3, // Limit description to 3 lines
-                overflow = TextOverflow.Ellipsis // Add ellipsis if description is too long
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 14.sp
             )
         }
     }
