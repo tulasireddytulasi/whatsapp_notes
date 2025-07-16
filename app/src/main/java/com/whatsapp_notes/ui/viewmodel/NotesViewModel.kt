@@ -12,10 +12,14 @@ import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -24,8 +28,25 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
     val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads.asStateFlow()
 
-    private val _threads = MutableStateFlow<List<ThreadEntity>>(emptyList())
-    val threads: StateFlow<List<ThreadEntity>> = _threads.asStateFlow()
+    // --- New additions for robust thread loading ---
+    private val _currentNoteId = MutableStateFlow<String?>(null) // State to hold the currently active note ID
+
+    // 'threads' now reacts to changes in _currentNoteId
+
+    // Corrected: Use stateIn to convert the Flow from flatMapLatest into a StateFlow
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val threads: StateFlow<List<ThreadEntity>> = _currentNoteId.flatMapLatest { noteId ->
+        if (noteId != null) {
+            threadDao.getThreadsForNote(noteId)
+        } else {
+            MutableStateFlow(emptyList()) // Return an empty Flow if no noteId
+        }
+    }.stateIn( // Use stateIn here
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000), // Start collecting when UI observes, stop after 5s if no observers
+        initialValue = emptyList() // Initial value for the StateFlow
+    )
+    // --- End new additions ---
 
     // State for the message input field
     private val _messageInput = MutableStateFlow("")
@@ -55,10 +76,6 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     val previewDescription: StateFlow<String?> = _previewDescription.asStateFlow()
 
     init {
-        loadNotesWithLastThreadContent()
-    }
-
-    private fun loadNotesWithLastThreadContent() {
         viewModelScope.launch {
             noteDao.getAllNotesWithThreads().collectLatest { data ->
                 _notesWithThreads.value = data
@@ -66,12 +83,9 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         }
     }
 
-    fun loadAllThreads(noteId: String) {
-        viewModelScope.launch {
-            threadDao.getThreadsForNote(noteId).collectLatest { data ->
-                _threads.value = data
-            }
-        }
+    // This function now simply updates the currentNoteId state
+    fun setCurrentNoteId(noteId: String?) {
+        _currentNoteId.value = noteId
     }
 
     fun updateMessageInput(newValue: String) {
@@ -98,7 +112,6 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 imageUrl = null, linkTitle = null, description = null
             )
             threadDao.insertThreads(listOf(newThread))
-            // No need to call loadNotesWithLastThreadContent() if using Flow from DAO
         }
     }
 
@@ -106,14 +119,12 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         viewModelScope.launch {
             noteDao.insertNote(noteEntity)
             threadDao.insertThreads(listOf(threadEntity))
-            // No need to call loadNotesWithLastThreadContent() if using Flow from DAO
         }
     }
 
     fun addThread(threadEntity: ThreadEntity) {
         viewModelScope.launch {
             threadDao.insertThread(threadEntity)
-            // loadAllThreads(threadEntity.noteOwnerId) // Flow from DAO will update automatically
         }
     }
 
@@ -138,7 +149,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                     _previewTitle.value = metadata.title
                     _previewDescription.value = metadata.description
                 } else {
-                    clearLinkMetadata() // Clear if no metadata found
+                    clearLinkMetadata()
                     _linkMetadataErrorMessage.value = "No link found or no link had sufficient metadata."
                 }
             } catch (e: Exception) {
@@ -165,8 +176,8 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                     timestamp = Instant.now().toString(),
                 )
                 addThread(newThread)
-                _messageInput.value = "" // Clear message input
-                clearLinkMetadata() // Clear link preview
+                _messageInput.value = ""
+                clearLinkMetadata()
             }
         }
     }

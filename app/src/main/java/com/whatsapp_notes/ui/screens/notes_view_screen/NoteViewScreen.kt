@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,8 +47,16 @@ fun NoteViewScreen(
     noteTitle: String,
     isPinned: Boolean,
 ) {
-    // Load threads when the screen is first composed
-    notesViewModel.loadAllThreads(noteId)
+
+    // Set the current note ID in the ViewModel when the screen is composed
+    DisposableEffect(noteId) { // Use DisposableEffect to set/clear ID based on lifecycle
+        notesViewModel.setCurrentNoteId(noteId)
+        onDispose {
+            // Optional: You might want to clear the note ID when the screen leaves composition,
+            // to avoid loading threads for a note that is no longer active.
+             notesViewModel.setCurrentNoteId(null) // Uncomment if needed
+        }
+    }
 
     // Observe states from ViewModel
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
