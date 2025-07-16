@@ -32,8 +32,11 @@ import com.whatsapp_notes.ui.viewmodel.NotesViewModelFactory
  */
 object Routes {
     const val HOME_SCREEN = "home_screen"
-    const val NOTE_VIEW_SCREEN = "note_view_screen/{noteId}" // Route with argument
+    const val NOTE_FIRST_ARG = "note_view_screen"
+    const val NOTE_VIEW_SCREEN = "${NOTE_FIRST_ARG}/{noteId}/{noteTitle}/{isPinned}" // Route with argument
     const val NOTE_ID_ARG = "noteId" // Argument key
+    const val NOTE_TITLE_ARG = "noteTitle"
+    const val NOTE_PIN_ARG = "isPinned"
     const val CREATE_EDIT_SCREEN = "create_edit_screen"
     const val NOTES_LIST_SCREEN = "notes_list_screen"
 }
@@ -102,19 +105,35 @@ class MainActivity : ComponentActivity() {
                                     tween(animDurationMS)
                                 )
                             },
-                            arguments = listOf(navArgument(Routes.NOTE_ID_ARG) {
+                            arguments = listOf(
+                                navArgument(Routes.NOTE_ID_ARG) {
                                 type = NavType.StringType // Define argument type
                                 nullable = true // Allow null for initial testing or if noteId is optional
-                            })
+                            },
+                                navArgument(Routes.NOTE_TITLE_ARG) {
+                                    type = NavType.StringType // Define argument type
+                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                },
+                                navArgument(Routes.NOTE_PIN_ARG) {
+                                    type = NavType.BoolType // Define argument type
+                                    nullable = false // Allow null for initial testing or if noteId
+                                },
+
+                                )
                         ) {
                                 backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
+                            val noteTitle = backStackEntry.arguments?.getString(Routes.NOTE_TITLE_ARG)
+                            val isPinned = backStackEntry.arguments?.getBoolean(Routes.NOTE_PIN_ARG)
+
                             // params: noteId = noteId
                             if (noteId != null) {
                                 NoteViewScreen(
                                     navController = navController,
                                     notesViewModel = notesViewModel,
-                                    noteId = noteId
+                                    noteId = noteId,
+                                    noteTitle = noteTitle ?: "",
+                                    isPinned = isPinned ?: false,
                                 )
                             }
                         }

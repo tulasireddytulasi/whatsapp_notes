@@ -155,12 +155,9 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                                     onClick = { clickedNote ->
                                         // Navigate to NoteViewScreen with the note ID
                                         navController.navigate(
-                                            Routes.NOTE_VIEW_SCREEN.replace(
-                                                "{${Routes.NOTE_ID_ARG}}",
-                                                clickedNote.noteId
-                                            )
+                                            "${Routes.NOTE_FIRST_ARG}/${clickedNote
+                                                .noteId}/${clickedNote.title}/${clickedNote.isPinned}"
                                         )
-                                        // navController.navigate("note_view_screen/${clickedNote.id}")
                                     }
                                 )
                             }
@@ -204,12 +201,9 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                                     // Corrected navigation: Use replace to substitute the ID into
                                     // the route pattern
                                     navController.navigate(
-                                        Routes.NOTE_VIEW_SCREEN.replace(
-                                            "{${Routes.NOTE_ID_ARG}}",
-                                            clickedNote.noteId
-                                        )
+                                        "${Routes.NOTE_FIRST_ARG}/${clickedNote
+                                            .noteId}/${clickedNote.title}/${clickedNote.isPinned}"
                                     )
-                                    // navController.navigate("note_view_screen/${clickedNote.id}")
                                 },
                                 onDeleteClick = { deletedNote ->
                                     println("Delete note: ${deletedNote.title}")

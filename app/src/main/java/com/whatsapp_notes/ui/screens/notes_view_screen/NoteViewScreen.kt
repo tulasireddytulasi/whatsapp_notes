@@ -49,6 +49,8 @@ fun NoteViewScreen(
     navController: NavController,
     notesViewModel: NotesViewModel,
     noteId: String,
+    noteTitle: String,
+    isPinned: Boolean,
 //    messages: List<Message>,
 //    modifier: Modifier = Modifier,
 //    onLinkClick: (String) -> Unit = {}
@@ -80,7 +82,7 @@ fun NoteViewScreen(
     Scaffold(
         topBar = {
             NoteAppBar(
-                title = "Notes Viewer", isPinned = true,
+                title = noteTitle, isPinned = isPinned,
                 onBackClick = {
                     println("Search query changed to:")
                     navController.popBackStack()
@@ -212,5 +214,7 @@ fun NoteViewScreenPreview() {
         navController = rememberNavController(),
         notesViewModel = viewModel(),
         noteId = "",
+        noteTitle = "",
+        isPinned = false,
     )
 }
