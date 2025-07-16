@@ -74,7 +74,7 @@ fun NoteViewScreen(
                     .background(DarkLighter)
                     .padding(bottom = 8.dp)
             ) {
-                if (showLinkPreview && previewImageUrl.isNullOrEmpty()) {
+                if (showLinkPreview && !previewImageUrl.isNullOrEmpty()) {
                     HorizontalLinkPreviewCard(
                         modifier = Modifier
                             .fillMaxWidth()
