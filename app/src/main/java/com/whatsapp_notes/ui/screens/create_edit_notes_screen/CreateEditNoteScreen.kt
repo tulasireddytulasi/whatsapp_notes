@@ -121,10 +121,10 @@ fun CreateEditNoteScreen(
                 )
                 notesViewModel.addNotes(newNote, newThread)
 
-                navController.navigate(Routes.NOTE_VIEW_SCREEN.replace(
-                    "{${Routes.NOTE_ID_ARG}}",
-                    newNote.noteId
-                )) {
+                navController.navigate(
+                    "${Routes.NOTE_FIRST_ARG}/${newNote
+                        .noteId}/${newNote.title}/${newNote.isPinned}"
+                ) {
                     // When navigating from create Screen to View Screen,
                     // pop everything up to Home Screen (inclusive)
                     // This effectively replaces Home Screen with Create Screen on the stack
