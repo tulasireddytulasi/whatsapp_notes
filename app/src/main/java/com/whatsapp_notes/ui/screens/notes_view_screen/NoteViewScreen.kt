@@ -56,7 +56,6 @@ fun NoteViewScreen(
     notesViewModel.loadAllThreads(noteId)
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
 
-   println("Theads 333: ${threads.size}")
     val linkMetaInfo = notesViewModel.linkMetadata.observeAsState()
 
     // Placeholder for link preview visibility and data
@@ -159,6 +158,7 @@ fun NoteViewScreen(
         }
     ) { paddingValues ->
         LazyColumn(
+            reverseLayout = true,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues) // Padding to account for header and input
@@ -166,7 +166,7 @@ fun NoteViewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp) // Internal padding
         ) {
-            items(threads) { thread ->
+            items(threads.reversed()) { thread ->
                 MessageBubble(thread = thread, onLinkClick = {})
             }
 
