@@ -121,12 +121,15 @@ fun CreateEditNoteScreen(
                 )
                 notesViewModel.addNotes(newNote, newThread)
 
-                navController.navigate(
-                    Routes.NOTE_VIEW_SCREEN.replace(
-                        "{${Routes.NOTE_ID_ARG}}",
-                        newNote.noteId
-                    )
-                )
+                navController.navigate(Routes.NOTE_VIEW_SCREEN.replace(
+                    "{${Routes.NOTE_ID_ARG}}",
+                    newNote.noteId
+                )) {
+                    // When navigating from create Screen to View Screen,
+                    // pop everything up to Home Screen (inclusive)
+                    // This effectively replaces Home Screen with Create Screen on the stack
+                    popUpTo(Routes.HOME_SCREEN) { inclusive = false }
+                }
             },
             containerColor = Color(0xFF2979FF), // Primary blue from HTML
             contentColor = Color.White,
