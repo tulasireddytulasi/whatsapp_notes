@@ -20,8 +20,14 @@ interface ThreadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertThread(thread: ThreadEntity)
 
+    /**
+     * Updates an existing ThreadEntity in the database.
+     * Room uses the primary key of the provided entity to find and update the corresponding row.
+     * @param thread The ThreadEntity object to update.
+     * @return The number of rows updated (usually 1 if successful).
+     */
     @Update
-    suspend fun updateThread(thread: ThreadEntity)
+    suspend fun updateThread(thread: ThreadEntity): Int // Added return type for clarity
 
     @Delete
     suspend fun deleteThread(thread: ThreadEntity)
