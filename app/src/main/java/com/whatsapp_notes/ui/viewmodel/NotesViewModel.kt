@@ -209,6 +209,32 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             }
         }
     }
+
+    fun deleteSelectedThreads() {
+        viewModelScope.launch {
+            val selectedThreadIds = _threads.value
+                .filter { it.isSelected }
+                .map { it.thread.threadId }
+
+            if (selectedThreadIds.isNotEmpty()) {
+                val deletedCount = threadDao.deleteThreadsByIds(selectedThreadIds)
+                Log.d("NotesViewModel", "Deleted $deletedCount selected threads.")
+                // After deletion, you might want to clear selection mode and refresh the list
+                toggleSelectionMode(false)
+                // The `setCurrentNoteId` will automatically re-fetch the updated list
+                // but if you want to be explicit, you can call it again or ensure your
+                // threadDao.getThreadsForNote() Flow handles deletions automatically.
+            }
+        }
+    }
+
+    fun deleteParticularThread(threadId: String) {
+        viewModelScope.launch {
+            val deletedCount = threadDao.deleteThreadById(threadId)
+            Log.d("NotesViewModel", "Deleted $deletedCount thread with ID: $threadId")
+            // No need to clear selection mode for single deletion unless it's part of a batch action
+        }
+    }
 }
 
 class NotesViewModelFactory(private val noteDao: NoteDao, private val threadDao: ThreadDao) :

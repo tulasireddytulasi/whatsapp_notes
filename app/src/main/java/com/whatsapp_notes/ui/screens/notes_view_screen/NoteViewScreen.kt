@@ -79,7 +79,13 @@ fun NoteViewScreen(
                 SelectionAppBar(
                     selectedCount = selectedThreadCount,
                     onClearSelection = { notesViewModel.toggleSelectionMode(false) },
-                    onDeleteSelected = { /* Handle delete action */ },
+                    onDeleteSelected = {
+                        val selectedThreadIds = notesViewModel.threads.value
+                            .filter { it.isSelected }
+                            .map { it.thread.threadId }
+                        val threadId = selectedThreadIds.first()
+                        notesViewModel.deleteParticularThread(threadId)
+                    },
                     onShareSelected = { /* Handle share action */ }
                 )
             } else {

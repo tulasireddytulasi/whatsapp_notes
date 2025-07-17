@@ -25,4 +25,31 @@ interface ThreadDao {
 
     @Delete
     suspend fun deleteThread(thread: ThreadEntity)
+
+    // --- New deletion queries ---
+
+    /**
+     * Deletes a specific thread by its ID.
+     * @param threadId The ID of the thread to delete.
+     * @return The number of rows deleted.
+     */
+    @Query("DELETE FROM threads WHERE threadId = :threadId")
+    suspend fun deleteThreadById(threadId: String): Int
+
+    /**
+     * Deletes multiple threads based on a list of their IDs.
+     * @param threadIds A list of thread IDs to delete.
+     * @return The number of rows deleted.
+     */
+    @Query("DELETE FROM threads WHERE threadId IN (:threadIds)")
+    suspend fun deleteThreadsByIds(threadIds: List<String>): Int
+
+    /**
+     * Deletes multiple ThreadEntity objects directly.
+     * This method is useful if you already have the ThreadEntity objects you want to delete.
+     * @param threads The list of ThreadEntity objects to delete.
+     */
+    @Delete
+    suspend fun deleteMultipleThreads(threads: List<ThreadEntity>)
+
 }
