@@ -11,11 +11,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -48,62 +56,73 @@ fun NoteViewScreen(
     isPinned: Boolean,
 ) {
 
-    // Set the current note ID in the ViewModel when the screen is composed
-    DisposableEffect(noteId) { // Use DisposableEffect to set/clear ID based on lifecycle
+    DisposableEffect(noteId) {
         notesViewModel.setCurrentNoteId(noteId)
         onDispose {
-            // Optional: You might want to clear the note ID when the screen leaves composition,
-            // to avoid loading threads for a note that is no longer active.
-             notesViewModel.setCurrentNoteId(null) // Uncomment if needed
+            notesViewModel.setCurrentNoteId(null)
+            notesViewModel.toggleSelectionMode(false) // Clear selection when leaving screen
         }
     }
 
-    // Observe states from ViewModel
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
     val messageInput by notesViewModel.messageInput.collectAsState()
     val showLinkPreview by notesViewModel.showLinkPreview.collectAsState()
     val previewImageUrl by notesViewModel.previewImageUrl.collectAsState()
     val previewTitle by notesViewModel.previewTitle.collectAsState()
     val previewDescription by notesViewModel.previewDescription.collectAsState()
+    val selectionModeActive by notesViewModel.selectionModeActive.collectAsState() // Observe selection mode
+    val selectedThreadCount = threads.count { it.isSelected } // Count selected items
 
     Scaffold(
         topBar = {
-            NoteAppBar(
-                title = noteTitle,
-                isPinned = isPinned,
-                onBackClick = { navController.popBackStack() },
-                onPinClick = { /* Handle pin click */ },
-                onMoreOptionsClick = { /* Handle more options click */ },
-            )
+            if (selectionModeActive) {
+                SelectionAppBar(
+                    selectedCount = selectedThreadCount,
+                    onClearSelection = { notesViewModel.toggleSelectionMode(false) },
+                    onDeleteSelected = { /* Handle delete action */ },
+                    onShareSelected = { /* Handle share action */ }
+                )
+            } else {
+                NoteAppBar(
+                    title = noteTitle,
+                    isPinned = isPinned,
+                    onBackClick = { navController.popBackStack() },
+                    onPinClick = { /* Handle pin click */ },
+                    onMoreOptionsClick = { /* Handle more options click */ },
+                )
+            }
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(DarkLighter)
-                    .padding(bottom = 8.dp)
-            ) {
-                if (showLinkPreview && !previewImageUrl.isNullOrEmpty()) {
-                    HorizontalLinkPreviewCard(
+            // Show message input only if selection mode is not active
+            if (!selectionModeActive) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(DarkLighter)
+                        .padding(bottom = 8.dp)
+                ) {
+                    if (showLinkPreview && !previewImageUrl.isNullOrEmpty()) {
+                        HorizontalLinkPreviewCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            imageUrl = previewImageUrl ?: "",
+                            title = previewTitle.orEmpty(),
+                            description = previewDescription.orEmpty(),
+                            onRemove = { notesViewModel.clearLinkMetadata() },
+                        )
+                    }
+
+                    MessageInputTextField(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
-                        imageUrl = previewImageUrl ?: "",
-                        title = previewTitle.orEmpty(), // Provide default for nullability
-                        description = previewDescription.orEmpty(), // Provide default for nullability
-                        onRemove = { notesViewModel.clearLinkMetadata() },
+                        value = messageInput,
+                        onSendMessage = { notesViewModel.sendMessage(noteId) },
+                        onValueChange = { notesViewModel.updateMessageInput(it) },
+                        onMicButtonClick = { /* Handle mic button click */ }
                     )
                 }
-
-                MessageInputTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    value = messageInput,
-                    onSendMessage = { notesViewModel.sendMessage(noteId) },
-                    onValueChange = { notesViewModel.updateMessageInput(it) },
-                    onMicButtonClick = { /* Handle mic button click */ }
-                )
             }
         }
     ) { paddingValues ->
@@ -116,8 +135,22 @@ fun NoteViewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
         ) {
-            items(threads) { thread ->
-                MessageBubble(thread = thread, onLinkClick = {})
+            items(threads) { threadUiState ->
+                MessageBubble(
+                    threadUiState = threadUiState,
+                    onLinkClick = {},
+                    onLongPress = { threadId ->
+                        notesViewModel.toggleSelectionMode(true)
+                        notesViewModel.toggleThreadSelection(threadId)
+                    },
+                    onClick = { threadId ->
+                        if (selectionModeActive) {
+                            notesViewModel.toggleThreadSelection(threadId)
+                        } else {
+                            // Handle regular click if not in selection mode
+                        }
+                    }
+                )
             }
 
             item {
@@ -154,6 +187,37 @@ fun NoteViewScreen(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectionAppBar(
+    selectedCount: Int,
+    onClearSelection: () -> Unit,
+    onDeleteSelected: () -> Unit,
+    onShareSelected: () -> Unit
+) {
+    TopAppBar(
+        title = { Text(text = "$selectedCount selected") },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        navigationIcon = {
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = "Clear selection")
+            }
+        },
+        actions = {
+            IconButton(onClick = onDeleteSelected) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete selected")
+            }
+            IconButton(onClick = onShareSelected) {
+                Icon(Icons.Filled.Share, contentDescription = "Share selected")
+            }
+        }
+    )
+}
+
 
 @Preview(showBackground = true)
 @Composable

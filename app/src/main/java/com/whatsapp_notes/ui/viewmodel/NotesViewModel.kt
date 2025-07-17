@@ -11,15 +11,12 @@ import com.whatsapp_notes.data.local.dao.ThreadDao
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
+import com.whatsapp_notes.data.model.ThreadUiState
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -28,25 +25,11 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
     val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads.asStateFlow()
 
-    // --- New additions for robust thread loading ---
-    private val _currentNoteId = MutableStateFlow<String?>(null) // State to hold the currently active note ID
+    private val _currentNoteId = MutableStateFlow<String?>(null)
 
-    // 'threads' now reacts to changes in _currentNoteId
-
-    // Corrected: Use stateIn to convert the Flow from flatMapLatest into a StateFlow
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val threads: StateFlow<List<ThreadEntity>> = _currentNoteId.flatMapLatest { noteId ->
-        if (noteId != null) {
-            threadDao.getThreadsForNote(noteId)
-        } else {
-            MutableStateFlow(emptyList()) // Return an empty Flow if no noteId
-        }
-    }.stateIn( // Use stateIn here
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000), // Start collecting when UI observes, stop after 5s if no observers
-        initialValue = emptyList() // Initial value for the StateFlow
-    )
-    // --- End new additions ---
+    // The actual state holder for ThreadUiState objects
+    private val _threads = MutableStateFlow<List<ThreadUiState>>(emptyList())
+    val threads: StateFlow<List<ThreadUiState>> = _threads.asStateFlow() // Expose as StateFlow
 
     // State for the message input field
     private val _messageInput = MutableStateFlow("")
@@ -75,6 +58,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _previewDescription = MutableStateFlow<String?>(null)
     val previewDescription: StateFlow<String?> = _previewDescription.asStateFlow()
 
+    // New state for selection mode
+    private val _selectionModeActive = MutableStateFlow(false)
+    val selectionModeActive: StateFlow<Boolean> = _selectionModeActive.asStateFlow()
+
     init {
         viewModelScope.launch {
             noteDao.getAllNotesWithThreads().collectLatest { data ->
@@ -83,10 +70,51 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         }
     }
 
-    // This function now simply updates the currentNoteId state
+    // Function to update the current note ID and load threads for it
     fun setCurrentNoteId(noteId: String?) {
         _currentNoteId.value = noteId
+        viewModelScope.launch {
+            if (noteId != null) {
+                threadDao.getThreadsForNote(noteId).collectLatest { threadEntities ->
+                    // Map ThreadEntity to ThreadUiState, preserving selection if possible
+                    val currentUiStates = _threads.value.associateBy { it.thread.threadId }
+                    val newUiStates = threadEntities.map { entity ->
+                        currentUiStates[entity.threadId]?.copy(thread = entity)
+                            ?: ThreadUiState(thread = entity, isSelected = false)
+                    }
+                    _threads.value = newUiStates
+                }
+            } else {
+                _threads.value = emptyList() // Clear threads if no noteId
+            }
+        }
     }
+
+    // New function to toggle selection mode
+    fun toggleSelectionMode(isActive: Boolean) {
+        _selectionModeActive.value = isActive
+        if (!isActive) {
+            clearAllSelections() // If selection mode is deactivated, unselect all threads
+        }
+    }
+
+    // Function to toggle the isSelected state of a specific thread
+    fun toggleThreadSelection(threadId: String) {
+        // Create a new list with the updated item
+        _threads.value = _threads.value.map { threadUiState ->
+            if (threadUiState.thread.threadId == threadId) {
+                threadUiState.copy(isSelected = !threadUiState.isSelected)
+            } else {
+                threadUiState
+            }
+        }
+    }
+
+    // Function to clear all selections
+    fun clearAllSelections() {
+        _threads.value = _threads.value.map { it.copy(isSelected = false) }
+    }
+
 
     fun updateMessageInput(newValue: String) {
         _messageInput.value = newValue

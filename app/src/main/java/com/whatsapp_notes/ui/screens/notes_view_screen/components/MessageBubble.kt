@@ -1,7 +1,8 @@
 package com.whatsapp_notes.ui.screens.notes_view_screen.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,21 +22,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.model.LinkPreview
+import com.whatsapp_notes.data.model.ThreadUiState
 import getRelativeTime
 
+@OptIn(ExperimentalFoundationApi::class) // Opt-in for combinedClickable
 @Composable
 fun MessageBubble(
-    thread: ThreadEntity,
+    threadUiState: ThreadUiState, // Change to ThreadUiState
     modifier: Modifier = Modifier,
-    onLinkClick: (String) -> Unit = {}
+    onLinkClick: (String) -> Unit = {},
+    onLongPress: (String) -> Unit, // Callback for long press
+    onClick: (String) -> Unit // Callback for regular click
 ) {
+    val thread = threadUiState.thread
+    val isSelected = threadUiState.isSelected
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { /* TODO: Implement on long press/context menu later */ },
+            .combinedClickable( // Use combinedClickable
+                onClick = { onClick(thread.threadId) },
+                onLongClick = { onLongPress(thread.threadId) }
+            ),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        border = BorderStroke(1.dp, Color(0xFF333333))
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color(0xFF4A4A4A) else Color(0xFF2A2A2A) // Change color if selected
+        ),
+        border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFF333333)) // Change border if selected
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -55,19 +68,19 @@ fun MessageBubble(
                     url = thread.imageUrl,
                 )
                 if(preview.imageUrl.isNotEmpty())  Spacer(modifier = Modifier.height(8.dp))
-              if(preview.imageUrl.isNotEmpty())  LinkPreviewCard(preview = preview, onLinkClick = onLinkClick)
+                if(preview.imageUrl.isNotEmpty())  LinkPreviewCard(preview = preview, onLinkClick = onLinkClick)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End // Pushes children to opposite ends
+                horizontalArrangement = Arrangement.End
             ) {
                 Text(
                     text = getRelativeTime(thread.timestamp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9E9E9E), // Equivalent to gray-500 in dark theme
+                    color = Color(0xFF9E9E9E),
                 )
             }
         }
@@ -98,8 +111,8 @@ fun MessageBubblePreview() {
     )
 
     Column(modifier = Modifier.padding(16.dp)) {
-        MessageBubble(thread = sampleMessageWithLink)
+        MessageBubble(threadUiState = ThreadUiState(sampleMessageWithLink, isSelected = false), onLongPress = {}, onClick = {})
         Spacer(modifier = Modifier.height(16.dp))
-        MessageBubble(thread = sampleMessageWithoutLink)
+        MessageBubble(threadUiState = ThreadUiState(sampleMessageWithoutLink, isSelected = true), onLongPress = {}, onClick = {})
     }
 }
