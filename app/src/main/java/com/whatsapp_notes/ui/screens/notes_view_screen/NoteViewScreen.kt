@@ -230,8 +230,10 @@ fun SelectionAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onEditSelection) {
-                Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
+            if (selectedCount < 2) {
+                IconButton(onClick = onEditSelection) {
+                    Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
+                }
             }
             IconButton(onClick = onDeleteSelected) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete selected")
