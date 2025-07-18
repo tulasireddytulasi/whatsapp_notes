@@ -86,7 +86,11 @@ fun NoteViewScreen(
                             .filter { it.isSelected }
                             .map { it.thread.threadId }
                         val threadId = selectedThreadIds.first()
-                        notesViewModel.deleteParticularThread(threadId)
+                        if (selectedThreadCount > 1) {
+                            notesViewModel.deleteSelectedThreads()
+                        } else {
+                            notesViewModel.deleteParticularThread(threadId)
+                        }
                     },
                     onShareSelected = { /* Handle share action */ },
                     onEditSelection = {

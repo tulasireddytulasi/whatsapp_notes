@@ -70,7 +70,7 @@ fun NoteCard(
     onArchiveClick: (NoteEntity) -> Unit = {}  // Default empty lambda for optional actions
 ) {
     val note = noteThread.note
-    val thread = noteThread.threads.first().content
+    val thread = noteThread.threads?.firstOrNull()?.content
 
     Box(
         modifier = cardModifier
@@ -178,7 +178,7 @@ fun NoteCard(
                     }
                 }
                 Text(
-                    text = thread,
+                    text = thread ?: "No thread found",
                     fontSize = if (note.isPinned) 12.sp else 14.sp, // text-xs for pinned, text-sm for all
                     color = Gray300, // text-gray-300
                     maxLines = 2,

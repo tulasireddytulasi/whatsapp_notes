@@ -19,7 +19,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.whatsapp_notes.data.local.database.NotesDatabase
-import com.whatsapp_notes.ui.screens.NotesListScreen
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.CreateEditNoteScreen
 import com.whatsapp_notes.ui.screens.home_screen.HomeScreen
 import com.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen
@@ -179,10 +178,6 @@ class MainActivity : ComponentActivity() {
                                 noteId = noteId,
                                 threadIdToEdit = threadId,
                             )
-                        }
-
-                        composable(Routes.NOTES_LIST_SCREEN){
-                            NotesListScreen(viewModel = notesViewModel)
                         }
                     }
                 }

@@ -12,5 +12,5 @@ data class NoteWithThreads(
         parentColumn = "noteId",
         entityColumn = "noteOwnerId"
     )
-    val threads: List<ThreadEntity>
+    val threads: List<ThreadEntity>?
 )
