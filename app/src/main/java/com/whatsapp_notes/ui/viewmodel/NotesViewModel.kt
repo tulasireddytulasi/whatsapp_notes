@@ -13,10 +13,15 @@ import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.data.model.ThreadUiState
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -27,11 +32,34 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
 
     private val _currentNoteId = MutableStateFlow<String?>(null)
 
-    // The actual state holder for ThreadUiState objects
-    private val _threads = MutableStateFlow<List<ThreadUiState>>(emptyList())
-    val threads: StateFlow<List<ThreadUiState>> = _threads.asStateFlow() // Expose as StateFlow
+    // Tracks selected thread IDs to reapply selection state
+    private val _threadSelectionStates = MutableStateFlow<Map<String, Boolean>>(emptyMap())
 
-    // State for the message input field
+    // The actual UI-facing StateFlow for ThreadUiState objects
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val threads: StateFlow<List<ThreadUiState>> = _currentNoteId
+        .flatMapLatest { noteId ->
+            if (noteId != null) {
+                threadDao.getThreadsForNote(noteId) // Database source of truth for ThreadEntity
+            } else {
+                MutableStateFlow(emptyList())
+            }
+        }
+        .combine(_threadSelectionStates) { threadEntities, selectionMap ->
+            // Map ThreadEntity to ThreadUiState, reapplying current selection status
+            threadEntities.map { entity ->
+                ThreadUiState(
+                    thread = entity,
+                    isSelected = selectionMap[entity.threadId] ?: false
+                )
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000), // Keep active for 5 seconds after last observer
+            initialValue = emptyList() // Initial value for the combined flow
+        )
+
     private val _messageInput = MutableStateFlow("")
     val messageInput: StateFlow<String> = _messageInput.asStateFlow()
 
@@ -58,7 +86,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _previewDescription = MutableStateFlow<String?>(null)
     val previewDescription: StateFlow<String?> = _previewDescription.asStateFlow()
 
-    // New state for selection mode
+    // Selection mode active status
     private val _selectionModeActive = MutableStateFlow(false)
     val selectionModeActive: StateFlow<Boolean> = _selectionModeActive.asStateFlow()
 
@@ -80,51 +108,43 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         }
     }
 
-    // Function to update the current note ID and load threads for it
     fun setCurrentNoteId(noteId: String?) {
         _currentNoteId.value = noteId
-        viewModelScope.launch {
-            if (noteId != null) {
-                threadDao.getThreadsForNote(noteId).collectLatest { threadEntities ->
-                    // Map ThreadEntity to ThreadUiState, preserving selection if possible
-                    val currentUiStates = _threads.value.associateBy { it.thread.threadId }
-                    val newUiStates = threadEntities.map { entity ->
-                        currentUiStates[entity.threadId]?.copy(thread = entity)
-                            ?: ThreadUiState(thread = entity, isSelected = false)
-                    }
-                    _threads.value = newUiStates
-                }
-            } else {
-                _threads.value = emptyList() // Clear threads if no noteId
-            }
+        if (noteId == null) {
+            // If navigating away from a note, clear all selection states
+            _threadSelectionStates.value = emptyMap()
+            _selectionModeActive.value = false
         }
+        // The `threads` flow (which is derived from _currentNoteId and _threadSelectionStates)
+        // will automatically update itself.
     }
 
-    // New function to toggle selection mode
     fun toggleSelectionMode(isActive: Boolean) {
         _selectionModeActive.value = isActive
         if (!isActive) {
-            clearAllSelections() // If selection mode is deactivated, unselect all threads
+            clearAllSelections() // Clear selections when exiting selection mode
         }
     }
 
-    // Function to toggle the isSelected state of a specific thread
     fun toggleThreadSelection(threadId: String) {
-        // Create a new list with the updated item
-        _threads.value = _threads.value.map { threadUiState ->
-            if (threadUiState.thread.threadId == threadId) {
-                threadUiState.copy(isSelected = !threadUiState.isSelected)
-            } else {
-                threadUiState
-            }
+        // Update the selection map
+        _threadSelectionStates.value = _threadSelectionStates.value.toMutableMap().apply {
+            val currentSelection = get(threadId) ?: false
+            put(threadId, !currentSelection)
         }
+        // Update selection mode active status based on whether any threads are selected
+        _selectionModeActive.value = _threadSelectionStates.value.any { it.value }
     }
 
-    // Function to clear all selections
+
     fun clearAllSelections() {
-        _threads.value = _threads.value.map { it.copy(isSelected = false) }
+        _threadSelectionStates.value = emptyMap()
+        _selectionModeActive.value = false
     }
 
+    fun getSelectedThreads(): List<ThreadEntity> {
+        return threads.value.filter { it.isSelected }.map { it.thread }
+    }
 
     fun updateMessageInput(newValue: String) {
         _messageInput.value = newValue
@@ -166,8 +186,31 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         }
     }
 
+    // New: Function to delete selected threads
+    fun deleteSelectedThreads() {
+        viewModelScope.launch {
+            val selectedThreadIds = getSelectedThreads().map { it.threadId }
+            if (selectedThreadIds.isNotEmpty()) {
+                val deletedCount = threadDao.deleteThreadsByIds(selectedThreadIds)
+                Log.d("NotesViewModel", "Deleted $deletedCount selected threads.")
+                // Clear selections after deletion
+                clearAllSelections()
+            }
+        }
+    }
+
+    // New: Function to delete a particular thread by ID
+    fun deleteParticularThread(threadId: String) {
+        viewModelScope.launch {
+            val deletedCount = threadDao.deleteThreadById(threadId)
+            Log.d("NotesViewModel", "Deleted $deletedCount thread with ID: $threadId")
+            // No need to clear all selections for single deletion unless it affects current selection mode
+            // If the deleted thread was selected, its selection state will naturally disappear when `threads` re-emits.
+        }
+    }
+
     fun clearLinkMetadata() {
-        _linkMetadata.value = null
+        _linkMetadata.postValue(null)
         _showLinkPreview.value = false
         _previewImageUrl.value = null
         _previewTitle.value = null
@@ -175,12 +218,13 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
     private fun fetchMetadataForText(text: String) {
+        _isLoadingLinkMetadata.postValue(true)
+        _linkMetadataErrorMessage.postValue(null)
+
         viewModelScope.launch {
             try {
-                _isLoadingLinkMetadata.value = true
-                _linkMetadataErrorMessage.value = null
                 val metadata = LinkMetadataFetcher.fetchFirstAvailableLinkMetadata(text)
-                _linkMetadata.value = metadata
+                _linkMetadata.postValue(metadata)
                 if (metadata != null) {
                     _showLinkPreview.value = true
                     _previewImageUrl.value = metadata.imageUrl
@@ -188,15 +232,14 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                     _previewDescription.value = metadata.description
                 } else {
                     clearLinkMetadata()
-                    _linkMetadataErrorMessage.value =
-                        "No link found or no link had sufficient metadata."
+                    _linkMetadataErrorMessage.postValue("No link found or no link had sufficient metadata.")
                 }
             } catch (e: Exception) {
-                _linkMetadataErrorMessage.value = "Failed to fetch metadata: ${e.message}"
+                _linkMetadataErrorMessage.postValue("Failed to fetch metadata: ${e.message}")
                 clearLinkMetadata()
                 Log.e("LinkViewModel", "Error in fetching metadata", e)
             } finally {
-                _isLoadingLinkMetadata.value = false
+                _isLoadingLinkMetadata.postValue(false)
             }
         }
     }
@@ -218,32 +261,6 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 _messageInput.value = ""
                 clearLinkMetadata()
             }
-        }
-    }
-
-    fun deleteSelectedThreads() {
-        viewModelScope.launch {
-            val selectedThreadIds = _threads.value
-                .filter { it.isSelected }
-                .map { it.thread.threadId }
-
-            if (selectedThreadIds.isNotEmpty()) {
-                val deletedCount = threadDao.deleteThreadsByIds(selectedThreadIds)
-                Log.d("NotesViewModel", "Deleted $deletedCount selected threads.")
-                // After deletion, you might want to clear selection mode and refresh the list
-                toggleSelectionMode(false)
-                // The `setCurrentNoteId` will automatically re-fetch the updated list
-                // but if you want to be explicit, you can call it again or ensure your
-                // threadDao.getThreadsForNote() Flow handles deletions automatically.
-            }
-        }
-    }
-
-    fun deleteParticularThread(threadId: String) {
-        viewModelScope.launch {
-            val deletedCount = threadDao.deleteThreadById(threadId)
-            Log.d("NotesViewModel", "Deleted $deletedCount thread with ID: $threadId")
-            // No need to clear selection mode for single deletion unless it's part of a batch action
         }
     }
 
