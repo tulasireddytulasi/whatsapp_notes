@@ -32,7 +32,7 @@ import com.whatsapp_notes.ui.viewmodel.NotesViewModelFactory
 object Routes {
     const val HOME_SCREEN = "home_screen"
     const val NOTE_FIRST_ARG = "note_view_screen"
-    const val NOTE_VIEW_SCREEN = "${NOTE_FIRST_ARG}/{noteId}/{noteTitle}/{isPinned}" // Route with argument
+    const val NOTE_VIEW_SCREEN = "${NOTE_FIRST_ARG}/{noteId}/{noteTitle}/{isPinned}"
     const val NOTE_ID_ARG = "noteId" // Argument key
     const val NOTE_TITLE_ARG = "noteTitle"
     const val NOTE_PIN_ARG = "isPinned"
@@ -94,8 +94,22 @@ class MainActivity : ComponentActivity() {
                         composable(
                             route = Routes.NOTE_VIEW_SCREEN,
                             enterTransition = {
+
+                                // 'initialState' represents the screen that was active before 'screenC' entered.
+                                val slideDirection = when (initialState.destination.route) {
+                                    // If coming from "screenA", Screen C slides in from the Right
+                                    Routes.HOME_SCREEN -> AnimatedContentTransitionScope
+                                        .SlideDirection.Left
+                                    // If coming from "screenB", Screen C slides in from the Left
+                                    Routes.CREATE_EDIT_SCREEN -> AnimatedContentTransitionScope
+                                        .SlideDirection.Right
+                                    // Add more conditions for other specific previous routes
+                                    // Default direction if the previous screen is not explicitly handled above
+                                    else -> AnimatedContentTransitionScope.SlideDirection.Left
+                                }
+
                                 slideIntoContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Left,
+                                    slideDirection,
                                     tween(animDurationMS)
                                 )
                             },
@@ -108,22 +122,24 @@ class MainActivity : ComponentActivity() {
                             },
                             arguments = listOf(
                                 navArgument(Routes.NOTE_ID_ARG) {
-                                type = NavType.StringType // Define argument type
-                                nullable = true // Allow null for initial testing or if noteId is optional
-                            },
+                                    type = NavType.StringType // Define argument type
+                                    nullable =
+                                        true // Allow null for initial testing or if noteId is optional
+                                },
                                 navArgument(Routes.NOTE_TITLE_ARG) {
                                     type = NavType.StringType // Define argument type
-                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                    nullable =
+                                        true // Allow null for initial testing or if noteId is optional
                                 },
                                 navArgument(Routes.NOTE_PIN_ARG) {
                                     type = NavType.BoolType // Define argument type
                                     nullable = false // Allow null for initial testing or if noteId
                                 },
-                                )
-                        ) {
-                                backStackEntry ->
+                            )
+                        ) { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
-                            val noteTitle = backStackEntry.arguments?.getString(Routes.NOTE_TITLE_ARG)
+                            val noteTitle =
+                                backStackEntry.arguments?.getString(Routes.NOTE_TITLE_ARG)
                             val isPinned = backStackEntry.arguments?.getBoolean(Routes.NOTE_PIN_ARG)
 
                             // params: noteId = noteId
@@ -148,29 +164,43 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             popExitTransition = {
+
+                                // 'targetState' represents the screen that will become visible after 'screenC' exits.
+                                val slideDirection = when (targetState.destination.route) {
+                                    // If popping back to "screenA", slide Screen C out to the Right
+                                    Routes.HOME_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Right
+                                    // If popping back to "screenB", slide Screen C out to the Left
+                                    Routes.NOTE_VIEW_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Left
+                                    // Add more conditions for other specific destination routes
+                                    // Default direction if the destination is not explicitly handled above
+                                    else -> AnimatedContentTransitionScope.SlideDirection.Right
+                                }
+
                                 slideOutOfContainer(
-                                    AnimatedContentTransitionScope.SlideDirection
-                                        .Right,
+                                    slideDirection,
                                     tween(animDurationMS)
                                 )
                             },
                             arguments = listOf(
                                 navArgument(Routes.NOTE_ID_ARG) {
                                     type = NavType.StringType // Define argument type
-                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                    nullable =
+                                        true // Allow null for initial testing or if noteId is optional
                                     defaultValue = null
                                 },
                                 navArgument(Routes.THREAD_ID_ARG) {
                                     type = NavType.StringType // Define argument type
-                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                    nullable =
+                                        true // Allow null for initial testing or if noteId is optional
                                     defaultValue = null
                                 },
                             )
-                        ) {
-                                backStackEntry ->
+                        ) { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
-                            val threadId = backStackEntry.arguments?.getString(Routes
-                                .THREAD_ID_ARG)
+                            val threadId = backStackEntry.arguments?.getString(
+                                Routes
+                                    .THREAD_ID_ARG
+                            )
                             // Pass navController to HomeScreen
                             CreateEditNoteScreen(
                                 navController = navController,
