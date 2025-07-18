@@ -37,11 +37,13 @@ fun SingleSelectChips(
     modifier: Modifier = Modifier,
     options: List<String>,
     showLeadingIcon : Boolean = false,
+    selectedOption: String? = null,
     onSelectionChanged: (String) -> Unit,
+
 ) {
     // State to hold the currently selected option.
     // It's nullable initially, meaning no option is selected by default.
-    var selectedOption by remember { mutableStateOf<String?>(null) }
+    var selectedOption by remember { mutableStateOf(selectedOption) }
 
     // FlowRow is used to arrange chips in a flexible row that wraps to the next line
     // when there's not enough horizontal space.

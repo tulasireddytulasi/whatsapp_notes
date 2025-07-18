@@ -37,7 +37,9 @@ object Routes {
     const val NOTE_ID_ARG = "noteId" // Argument key
     const val NOTE_TITLE_ARG = "noteTitle"
     const val NOTE_PIN_ARG = "isPinned"
-    const val CREATE_EDIT_SCREEN = "create_edit_screen"
+    const val EDIT_FIRST_ARG = "create_edit_screen"
+    const val CREATE_EDIT_SCREEN = "${EDIT_FIRST_ARG}/{noteId}/{threadId}"
+    const val THREAD_ID_ARG = "threadId" // Argument key
     const val NOTES_LIST_SCREEN = "notes_list_screen"
 }
 
@@ -118,7 +120,6 @@ class MainActivity : ComponentActivity() {
                                     type = NavType.BoolType // Define argument type
                                     nullable = false // Allow null for initial testing or if noteId
                                 },
-
                                 )
                         ) {
                                 backStackEntry ->
@@ -154,11 +155,29 @@ class MainActivity : ComponentActivity() {
                                     tween(animDurationMS)
                                 )
                             },
+                            arguments = listOf(
+                                navArgument(Routes.NOTE_ID_ARG) {
+                                    type = NavType.StringType // Define argument type
+                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                    defaultValue = null
+                                },
+                                navArgument(Routes.THREAD_ID_ARG) {
+                                    type = NavType.StringType // Define argument type
+                                    nullable = true // Allow null for initial testing or if noteId is optional
+                                    defaultValue = null
+                                },
+                            )
                         ) {
+                                backStackEntry ->
+                            val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
+                            val threadId = backStackEntry.arguments?.getString(Routes
+                                .THREAD_ID_ARG)
                             // Pass navController to HomeScreen
                             CreateEditNoteScreen(
                                 navController = navController,
-                                notesViewModel = notesViewModel
+                                notesViewModel = notesViewModel,
+                                noteId = noteId,
+                                threadIdToEdit = threadId,
                             )
                         }
 

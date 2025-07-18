@@ -62,6 +62,16 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _selectionModeActive = MutableStateFlow(false)
     val selectionModeActive: StateFlow<Boolean> = _selectionModeActive.asStateFlow()
 
+    // States for Create/Edit Note Screen
+    private val _noteTitle = MutableStateFlow("")
+    val noteTitle: StateFlow<String> = _noteTitle.asStateFlow()
+
+    private val _noteDescription = MutableStateFlow("")
+    val noteDescription: StateFlow<String> = _noteDescription.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow("")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
+
     init {
         viewModelScope.launch {
             noteDao.getAllNotesWithThreads().collectLatest { data ->
@@ -165,10 +175,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
     private fun fetchMetadataForText(text: String) {
-        _isLoadingLinkMetadata.value = true
-        _linkMetadataErrorMessage.value = null
         viewModelScope.launch {
             try {
+                _isLoadingLinkMetadata.value = true
+                _linkMetadataErrorMessage.value = null
                 val metadata = LinkMetadataFetcher.fetchFirstAvailableLinkMetadata(text)
                 _linkMetadata.value = metadata
                 if (metadata != null) {
@@ -178,7 +188,8 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                     _previewDescription.value = metadata.description
                 } else {
                     clearLinkMetadata()
-                    _linkMetadataErrorMessage.value = "No link found or no link had sufficient metadata."
+                    _linkMetadataErrorMessage.value =
+                        "No link found or no link had sufficient metadata."
                 }
             } catch (e: Exception) {
                 _linkMetadataErrorMessage.value = "Failed to fetch metadata: ${e.message}"
@@ -234,6 +245,142 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             Log.d("NotesViewModel", "Deleted $deletedCount thread with ID: $threadId")
             // No need to clear selection mode for single deletion unless it's part of a batch action
         }
+    }
+
+    /**
+     * Updates an existing thread in the database.
+     * @param updatedThread The ThreadEntity object with the updated details.
+     */
+    private fun updateExistingThreadInDb(updatedThread: ThreadEntity) {
+        viewModelScope.launch {
+            try {
+                val rowsUpdated = threadDao.updateThread(updatedThread)
+                if (rowsUpdated > 0) {
+                    Log.d(
+                        "NotesViewModel",
+                        "Thread ${updatedThread.threadId} updated successfully."
+                    )
+                    // If your UI relies on the Flow from getThreadsForNote(),
+                    // the UI will automatically update when Room emits the new data.
+                } else {
+                    Log.w(
+                        "NotesViewModel",
+                        "Thread ${updatedThread.threadId} not found for update."
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("NotesViewModel", "Error updating thread ${updatedThread.threadId}", e)
+            }
+        }
+    }
+
+    fun updateNoteTitle(newValue: String) {
+        _noteTitle.value = newValue
+    }
+
+    fun updateNoteDescription(newValue: String) {
+        _noteDescription.value = newValue
+        fetchMetadataForText(newValue)
+    }
+
+    fun updateSelectedCategory(newValue: String) {
+        _selectedCategory.value = newValue
+    }
+
+    fun loadNoteDetails(noteId: String, threadId: String) {
+        viewModelScope.launch {
+            val note = noteDao.getNoteById(noteId)
+            val threadForNote =
+                threadDao.getThreadById(threadId) // Use getThreadsForNoteOnce to fetch
+            // current state
+            note?.let {
+                _noteTitle.value = it.title
+                _selectedCategory.value = it.category
+            }
+            threadForNote?.let {
+                _noteDescription.value = it.content
+                // Also load link metadata if available for the existing thread
+                _previewImageUrl.value = it.imageUrl
+                _previewTitle.value = it.linkTitle
+                _previewDescription.value = it.description
+                _showLinkPreview.value =
+                    !it.imageUrl.isNullOrEmpty() || !it.linkTitle.isNullOrEmpty()
+            }
+        }
+    }
+
+    fun saveNote(
+        onSuccess: (NoteEntity) -> Unit,
+        onError: (String) -> Unit,
+        existingThreadId: String? = null
+    ) {
+        val title = _noteTitle.value
+        val description = _noteDescription.value
+        val category = _selectedCategory.value
+
+        if (title.isEmpty() || description.isEmpty() || category.isEmpty()) {
+            onError("Please fill title, description & category fields")
+            return
+        }
+
+        viewModelScope.launch {
+            if (existingThreadId != null) {
+                // Find the current ThreadEntity (you'd likely fetch it from the DB or your _threads.value)
+                val currentThreadUiState = threadDao.getThreadById(existingThreadId)
+                currentThreadUiState?.let { uiState ->
+                    val updatedThreadEntity = uiState.copy(
+                        content = description,
+                        imageUrl = _previewImageUrl.value,
+                        linkTitle = _previewTitle.value,
+                        description = _previewDescription.value,
+                        timestamp = Instant.now().toString()
+                    )
+                    updateExistingThreadInDb(updatedThreadEntity)
+                    // If we're updating a thread, we assume the note already exists
+                    // We might need to fetch the NoteEntity to pass it to onSuccess if required for navigation
+                    val noteEntity = noteDao.getNoteById(uiState.noteOwnerId)
+                    if (noteEntity != null) {
+                        onSuccess(noteEntity)
+                    } else {
+                        onError("Note associated with thread not found.")
+                    }
+                } ?: onError("Thread to update not found.")
+            } else {
+                // Create new note and thread
+                val newNote = NoteEntity(
+                    noteId = "note_${System.currentTimeMillis()}",
+                    title = title,
+                    category = category,
+                    timestamp = Instant.now().toString(),
+                    isPinned = false,
+                    colorStripHex = "#FF00FF"
+                )
+                noteDao.insertNote(newNote)
+
+                val newThread = ThreadEntity(
+                    threadId = "thread_${System.currentTimeMillis()}",
+                    noteOwnerId = newNote.noteId,
+                    content = description,
+                    timestamp = Instant.now().toString(),
+                    imageUrl = _previewImageUrl.value,
+                    linkTitle = _previewTitle.value,
+                    description = _previewDescription.value
+                )
+                threadDao.insertThreads(listOf(newThread))
+                onSuccess(newNote)
+            }
+        }
+    }
+
+    /**
+     * Resets the ViewModel's state related to note creation/editing.
+     * Call this when navigating away from the create/edit screen.
+     */
+    fun resetNoteCreationState() {
+        _noteTitle.value = ""
+        _noteDescription.value = ""
+        _selectedCategory.value = ""
+        clearLinkMetadata()
     }
 }
 

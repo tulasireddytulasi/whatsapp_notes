@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.whatsapp_notes.Routes
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.HorizontalLinkPreviewCard
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageBubble
 import com.whatsapp_notes.ui.screens.notes_view_screen.components.MessageInputTextField
@@ -86,7 +88,16 @@ fun NoteViewScreen(
                         val threadId = selectedThreadIds.first()
                         notesViewModel.deleteParticularThread(threadId)
                     },
-                    onShareSelected = { /* Handle share action */ }
+                    onShareSelected = { /* Handle share action */ },
+                    onEditSelection = {
+                        val selectedThreads = notesViewModel.threads.value
+                            .filter { it.isSelected }
+                            .map { it.thread }
+                        val editThreadId = selectedThreads.first().threadId
+                        val editNoteId = selectedThreads.first().noteOwnerId
+
+                        navController.navigate("${Routes.EDIT_FIRST_ARG}/$editNoteId/$editThreadId")
+                    },
                 )
             } else {
                 NoteAppBar(
@@ -198,6 +209,7 @@ fun NoteViewScreen(
 @Composable
 fun SelectionAppBar(
     selectedCount: Int,
+    onEditSelection: () -> Unit,
     onClearSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
     onShareSelected: () -> Unit
@@ -214,6 +226,9 @@ fun SelectionAppBar(
             }
         },
         actions = {
+            IconButton(onClick = onEditSelection) {
+                Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
+            }
             IconButton(onClick = onDeleteSelected) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete selected")
             }

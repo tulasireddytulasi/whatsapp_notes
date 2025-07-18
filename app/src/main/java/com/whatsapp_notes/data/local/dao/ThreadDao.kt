@@ -7,12 +7,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.whatsapp_notes.data.local.entities.ThreadEntity
-import kotlinx.coroutines.flow.Flow // Import Flow
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ThreadDao {
     @Query("SELECT * FROM threads WHERE noteOwnerId = :noteId ORDER BY timestamp DESC") // Added ORDER BY for consistent thread order
     fun getThreadsForNote(noteId: String): Flow<List<ThreadEntity>> // Changed to Flow
+
+    @Query("SELECT * FROM threads WHERE threadId = :threadId")
+    suspend fun getThreadById(threadId: String): ThreadEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertThreads(threads: List<ThreadEntity>)

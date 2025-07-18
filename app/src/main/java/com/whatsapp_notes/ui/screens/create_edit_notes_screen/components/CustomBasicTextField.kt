@@ -20,9 +20,11 @@ fun CustomBasicTextField(
     onValueChange: (String) -> Unit,
     textStyleData: TextStyle? = null,
     placeholder: String,
+    readOnly: Boolean = false,
 ){
     if (textStyleData != null) {
         TextField(
+            readOnly = readOnly,
             value = value, // Current value of the TextField
             onValueChange = { newText -> onValueChange(newText) }, // Callback for when the text changes
             placeholder = { // Composable to display when the TextField is empty

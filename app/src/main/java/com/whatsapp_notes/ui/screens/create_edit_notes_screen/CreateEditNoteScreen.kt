@@ -20,11 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,8 +36,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.whatsapp_notes.Routes
-import com.whatsapp_notes.data.local.entities.NoteEntity
-import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.CustomBasicTextField
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.LinkPreviewCard
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.NoteTopAppBar
@@ -46,103 +43,93 @@ import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.SingleS
 import com.whatsapp_notes.ui.theme.DarkDarker
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.NotesAppTheme
-import com.whatsapp_notes.ui.viewmodel.CreateEditNoteViewModel
 import com.whatsapp_notes.ui.viewmodel.NotesViewModel
-import java.time.Instant
 
 @Composable
 fun CreateEditNoteScreen(
     navController: NavController,
-    viewModel: CreateEditNoteViewModel = viewModel(), // ViewModel instance,
     notesViewModel: NotesViewModel,
+    threadIdToEdit: String? = null, // Null for creation, provided for editing
+    noteId: String? = null
 ) {
-    // These states will eventually come from a ViewModel
-    var noteTitle by remember { mutableStateOf("") }
-    var noteDescription by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    // Collect states from ViewModel
+    val noteTitle by notesViewModel.noteTitle.collectAsState()
+    val noteDescription by notesViewModel.noteDescription.collectAsState()
+    val selectedCategory by notesViewModel.selectedCategory.collectAsState()
+    val showLinkPreview by notesViewModel.showLinkPreview.collectAsState()
+    val previewImageUrl by notesViewModel.previewImageUrl.collectAsState()
+    val previewTitle by notesViewModel.previewTitle.collectAsState()
+    val previewDescription by notesViewModel.previewDescription.collectAsState()
+    val isLoadingLinkMetadata by notesViewModel.isLoadingLinkMetadata.observeAsState(false)
+
+
     val categories = listOf("Work", "Personal", "Ideas", "Travel")
 
-    val linkMetaInfo = viewModel.linkMetadata.observeAsState()
-
-    // Placeholder for link preview visibility and data
-    var showLinkPreview by remember { mutableStateOf(false) } // Will be dynamic based on URL detection
-    var previewImageUrl by remember { mutableStateOf("") }
-    var previewTitle by remember { mutableStateOf("") } // "Example Website Title"
-    var previewDescription by remember { mutableStateOf("") }
-    val previewDomain by remember { mutableStateOf("example.com") }
-
-    if (linkMetaInfo.value != null) {
-        showLinkPreview = true
-        previewImageUrl = linkMetaInfo.value?.imageUrl.toString()
-        previewTitle = linkMetaInfo.value?.title.toString()
-        previewDescription = linkMetaInfo.value?.description.toString()
-    } else {
-        showLinkPreview = false
-        previewImageUrl = ""
-        previewTitle = ""
-        previewDescription = ""
+    // Determine if we are in edit mode
+    val isEditMode = (threadIdToEdit != "{threadId}") && (noteId != "{noteId}")
+    if (threadIdToEdit != null) {
+        println("isEditttt: $isEditMode, $threadIdToEdit, $noteId")
     }
 
-    Scaffold(topBar = {
-        NoteTopAppBar(
-            viewModel = viewModel,
-            onBackClick = { navController.popBackStack() },
-        )
-    }, floatingActionButton = {
-        val context = LocalContext.current
-        FloatingActionButton(
-            onClick = {
-                // If ALL three are null or empty, then we don't proceed.
-                if (noteTitle.isEmpty() || noteDescription.isEmpty() || selectedCategory.isEmpty()) {
-                    println("Error: Title, description, and category cannot all be empty or null.")
-                    Toast.makeText(
-                        context, "Please fill title, description & category fields", Toast
-                            .LENGTH_SHORT
-                    ).show()
-                    return@FloatingActionButton // Stop execution of the lambda if validation fails
-                }
-                //  notesViewModel.addSampleNote()
-                val newNote = NoteEntity(
-                    noteId = "note_${System.currentTimeMillis()}",
-                    title = noteTitle,
-                    category = selectedCategory,
-                    timestamp = Instant.now().toString(),
-                    isPinned = false,
-                    colorStripHex = "#FF00FF"
-                )
-                val newThread = ThreadEntity(
-                    threadId = "thread_${System.currentTimeMillis()}",
-                    noteOwnerId = newNote.noteId,
-                    content = noteDescription,
-                    timestamp = Instant.now().toString(),
-                    imageUrl = previewImageUrl,
-                    linkTitle = previewTitle,
-                    description = previewDescription
-                )
-                notesViewModel.addNotes(newNote, newThread)
+    LaunchedEffect(threadIdToEdit) {
+        if (isEditMode) {
+            // For editing, we might want to load the note's title and category as well,
+            // assuming a thread is always part of a note.
+            // If CreateEditNoteScreen is solely for creating/editing *threads* related to a note,
+            // then only thread content is relevant here.
+            // If it's for editing the primary thread of a note, then load note details.
+            notesViewModel.loadNoteDetails(noteId?: "", threadIdToEdit?: "")
+        } else {
+            // Clear the ViewModel states when creating a new note
+            notesViewModel.resetNoteCreationState()
+        }
+    }
 
-                navController.navigate(
-                    "${Routes.NOTE_FIRST_ARG}/${newNote
-                        .noteId}/${newNote.title}/${newNote.isPinned}"
-                ) {
-                    // When navigating from create Screen to View Screen,
-                    // pop everything up to Home Screen (inclusive)
-                    // This effectively replaces Home Screen with Create Screen on the stack
-                    popUpTo(Routes.HOME_SCREEN) { inclusive = false }
+
+    Scaffold(
+        topBar = {
+            NoteTopAppBar(
+                // The CreateEditNoteViewModel is not used here anymore, can be removed if not needed elsewhere
+                // If it's for top app bar specific actions, it can remain.
+                viewModel = viewModel(), // Consider passing NotesViewModel if actions relate to it
+                onBackClick = { navController.popBackStack() },
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    notesViewModel.saveNote(
+                        onSuccess = { newNote ->
+                            navController.navigate(
+                                "${Routes.NOTE_FIRST_ARG}/${newNote.noteId}/${newNote.title}/${newNote.isPinned}"
+                            ) {
+                                popUpTo(Routes.HOME_SCREEN) { inclusive = false }
+                            }
+                        },
+                        onError = { errorMessage ->
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        },
+                        existingThreadId = if(threadIdToEdit != "{threadId}") threadIdToEdit else
+                            null,
+                    // Pass thread ID
+                    // if in edit mode
+                    )
+                },
+                containerColor = Color(0xFF2979FF), // Primary blue from HTML
+                contentColor = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .border(1.dp, DarkDarker, RoundedCornerShape(2.dp))
+                    .height(56.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (isEditMode) "Update Note" else "Save Note", style = TextStyle(fontSize = 18.sp))
                 }
-            },
-            containerColor = Color(0xFF2979FF), // Primary blue from HTML
-            contentColor = Color.White,
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .border(1.dp, DarkDarker, RoundedCornerShape(2.dp))
-                .height(56.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Save Note", style = TextStyle(fontSize = 18.sp))
             }
         }
-    }) { paddingValues ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -163,18 +150,23 @@ fun CreateEditNoteScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             SingleSelectChips(
-                options = categories, showLeadingIcon = false
+                options = categories, showLeadingIcon = false,
+                selectedOption = selectedCategory,
             ) { selectedOption ->
                 // Handle the selected option here
                 println("Selected difficulty: $selectedOption")
-                selectedCategory = selectedOption
+                notesViewModel.updateSelectedCategory(selectedOption)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             CustomBasicTextField(
                 value = noteTitle,
-                onValueChange = { noteTitle = it },
+                onValueChange = {
+                    if (!isEditMode) { // Title only editable in create mode
+                        notesViewModel.updateNoteTitle(it)
+                    }
+                },
                 textStyleData = TextStyle(
                     color = Color.White,
                     fontSize = 24.sp,
@@ -183,27 +175,29 @@ fun CreateEditNoteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 60.dp),
+                readOnly = isEditMode // Make read-only if in edit mode
             )
 
             Spacer(modifier = Modifier.height(0.dp))
 
             // Link Preview Section (conditionally visible)
-            if (showLinkPreview) {
-                LinkPreviewCard(imageUrl = previewImageUrl,
-                    title = previewTitle,
-                    description = previewDescription,
-                    domain = previewDomain,
-                    onRemove = { /* Handle remove preview */ })
+            if (showLinkPreview && !isLoadingLinkMetadata) {
+                LinkPreviewCard(
+                    imageUrl = previewImageUrl ?: "",
+                    title = previewTitle ?: "",
+                    description = previewDescription ?: "",
+                    domain = notesViewModel.linkMetadata.value?.url?.let {
+                        android.net.Uri.parse(it).host
+                    } ?: "", // Extract domain from URL
+                    onRemove = { notesViewModel.clearLinkMetadata() }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Note Description Input
+            // Note Description Input (Thread Content)
             CustomBasicTextField(
                 value = noteDescription,
-                onValueChange = {
-                    noteDescription = it
-                    viewModel.fetchMetadataForText(it)
-                },
+                onValueChange = { notesViewModel.updateNoteDescription(it) },
                 textStyleData = TextStyle(
                     color = Color.White, fontSize = 16.sp, lineHeight = 24.sp
                 ),
