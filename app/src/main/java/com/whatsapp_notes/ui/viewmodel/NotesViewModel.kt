@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -26,9 +25,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 
 class NotesViewModel(private val noteDao: NoteDao, private val threadDao: ThreadDao) : ViewModel() {
-
-    private val _notesWithThreads = MutableStateFlow<List<NoteWithThreads>>(emptyList())
-    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _notesWithThreads.asStateFlow()
 
     private val _currentNoteId = MutableStateFlow<String?>(null)
 
@@ -100,12 +96,34 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _selectedCategory = MutableStateFlow("")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            noteDao.getAllNotesWithThreads().collectLatest { data ->
-                _notesWithThreads.value = data
+    // --- New additions for category filtering ---
+    private val _selectedCategoryFilter = MutableStateFlow("All") // Default to "All"
+    val selectedCategoryFilter: StateFlow<String> = _selectedCategoryFilter.asStateFlow()
+
+    // This will now be the main source for notesWithThreads, filtered by category
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _selectedCategoryFilter
+        .flatMapLatest { category ->
+            if (category == "All") {
+                noteDao.getAllNotesWithThreads() // Get all notes if category is "All"
+            } else {
+                noteDao.getNotesWithThreadsByCategory(category) // Filter by specific category
             }
         }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+    // --- End new additions ---
+
+    // Function to set the category filter
+    fun setCategoryFilter(category: String) {
+        _selectedCategoryFilter.value = category
+    }
+
+    init {
+       // getAllNotesWithThreads()
     }
 
     fun setCurrentNoteId(noteId: String?) {

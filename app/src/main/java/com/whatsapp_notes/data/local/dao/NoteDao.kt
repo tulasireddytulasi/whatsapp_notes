@@ -20,6 +20,11 @@ interface NoteDao {
     @Query("SELECT * FROM notes")
     fun getAllNotesWithThreads(): Flow<List<NoteWithThreads>> // Changed to Flow
 
+    // --- New method for filtering by category ---
+    @Transaction
+    @Query("SELECT * FROM notes WHERE :category = 'All' OR category = :category")
+    fun getNotesWithThreadsByCategory(category: String): Flow<List<NoteWithThreads>>
+
     @Query(
         """
         SELECT

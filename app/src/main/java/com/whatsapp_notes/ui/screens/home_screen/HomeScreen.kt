@@ -57,7 +57,7 @@ import com.whatsapp_notes.ui.viewmodel.NotesViewModel
 @Composable
 fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { // Add navController as a parameter
     var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("All") }
+    val selectedCategory by notesViewModel.selectedCategoryFilter.collectAsState()
     val categories = listOf("All", "Work", "Personal", "Ideas")
     val notesWithLastThread by notesViewModel.notesWithThreads.collectAsState(initial = emptyList())
     val unPinnedNotes: List<NoteWithThreads> = notesWithLastThread.filter { notes ->
@@ -97,7 +97,7 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                     categories = categories,
                     selectedCategory = selectedCategory,
                     onCategorySelected = { newCategory ->
-                        selectedCategory = newCategory
+                        notesViewModel.setCategoryFilter(newCategory)
                         println("Category selected: $selectedCategory")
                     }
                 )
