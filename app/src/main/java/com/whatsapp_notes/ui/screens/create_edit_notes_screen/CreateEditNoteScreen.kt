@@ -24,6 +24,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.whatsapp_notes.Routes
+import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.ColorPickerDialog
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.CustomBasicTextField
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.LinkPreviewCard
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.components.NoteTopAppBar
@@ -54,10 +58,14 @@ fun CreateEditNoteScreen(
 ) {
     val context = LocalContext.current
 
+    // State to control the visibility of the color picker dialog
+    var showColorPickerDialog by remember { mutableStateOf(false) }
+
     // Collect states from ViewModel
     val noteTitle by notesViewModel.noteTitle.collectAsState()
     val noteDescription by notesViewModel.noteDescription.collectAsState()
     val selectedCategory by notesViewModel.selectedCategory.collectAsState()
+    val selectedColor by notesViewModel.selectedColor.collectAsState()
     val showLinkPreview by notesViewModel.showLinkPreview.collectAsState()
     val previewImageUrl by notesViewModel.previewImageUrl.collectAsState()
     val previewTitle by notesViewModel.previewTitle.collectAsState()
@@ -80,7 +88,7 @@ fun CreateEditNoteScreen(
             // If CreateEditNoteScreen is solely for creating/editing *threads* related to a note,
             // then only thread content is relevant here.
             // If it's for editing the primary thread of a note, then load note details.
-            notesViewModel.loadNoteDetails(noteId?: "", threadIdToEdit?: "")
+            notesViewModel.loadNoteDetails(noteId ?: "", threadIdToEdit ?: "")
         } else {
             // Clear the ViewModel states when creating a new note
             notesViewModel.resetNoteCreationState()
@@ -90,11 +98,14 @@ fun CreateEditNoteScreen(
 
     Scaffold(
         topBar = {
+            val selectedColorData = Color(android.graphics.Color.parseColor(selectedColor))
             NoteTopAppBar(
                 // The CreateEditNoteViewModel is not used here anymore, can be removed if not needed elsewhere
                 // If it's for top app bar specific actions, it can remain.
                 viewModel = viewModel(), // Consider passing NotesViewModel if actions relate to it
                 onBackClick = { navController.popBackStack() },
+                selectedColor = selectedColorData,
+                onColorPick = { showColorPickerDialog = !showColorPickerDialog },
             )
         },
         floatingActionButton = {
@@ -111,10 +122,8 @@ fun CreateEditNoteScreen(
                         onError = { errorMessage ->
                             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                         },
-                        existingThreadId = if(threadIdToEdit != "{threadId}") threadIdToEdit else
+                        existingThreadId = if (threadIdToEdit != "{threadId}") threadIdToEdit else
                             null,
-                    // Pass thread ID
-                    // if in edit mode
                     )
                 },
                 containerColor = Color(0xFF2979FF), // Primary blue from HTML
@@ -125,7 +134,10 @@ fun CreateEditNoteScreen(
                     .height(56.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (isEditMode) "Update Note" else "Save Note", style = TextStyle(fontSize = 18.sp))
+                    Text(
+                        if (isEditMode) "Update Note" else "Save Note",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
                 }
             }
         }
@@ -139,6 +151,17 @@ fun CreateEditNoteScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.Top,
         ) {
+            ColorPickerDialog(
+                showDialog = showColorPickerDialog,
+                onDismissRequest = { showColorPickerDialog = false },
+                onColorSelected = { color ->
+                    notesViewModel.updateSelectedColor(color)
+                   // selectedColor = color
+                    showColorPickerDialog = false // Dismiss dialog after color is selected
+                },
+                initialColor = selectedColor, // Pass the current selected color
+                // as initial
+            )
             // Category Section
             Text(
                 text = "Category",

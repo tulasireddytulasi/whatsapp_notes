@@ -25,6 +25,8 @@ import com.whatsapp_notes.ui.viewmodel.CreateEditNoteViewModel
 fun NoteTopAppBar(
     viewModel: CreateEditNoteViewModel, // Pass the ViewModel to access state and events
     onBackClick: () -> Unit,
+    onColorPick: () -> Unit,
+    selectedColor: Color = Color.Blue,
 ) {
     TopAppBar(
         title = {
@@ -34,7 +36,7 @@ fun NoteTopAppBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick ) { // Handle back click
+            IconButton(onClick = onBackClick) { // Handle back click
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back",
@@ -43,11 +45,11 @@ fun NoteTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = { viewModel.onColorPickerClick() }) { // Handle color picker click
+            IconButton(onClick = { onColorPick() }) { // Handle color picker click
                 Icon(
                     painter = painterResource(id = R.drawable.color_picker),
                     contentDescription = "Choose Color",
-                    tint = Color.LightGray
+                    tint = selectedColor,
                 )
             }
             // Delete button is only visible in edit mode
@@ -73,7 +75,7 @@ fun PreviewNoteTopAppBarCreateMode() {
     NotesAppTheme {
         val viewModel = viewModel<CreateEditNoteViewModel>()
         viewModel.setEditModeVal(false) // Ensure it's in create mode for this preview
-        NoteTopAppBar(viewModel = viewModel, onBackClick = {})
+        NoteTopAppBar(viewModel = viewModel, onBackClick = {}, onColorPick = {})
     }
 }
 
@@ -83,6 +85,6 @@ fun PreviewNoteTopAppBarEditMode() {
     NotesAppTheme {
         val viewModel = viewModel<CreateEditNoteViewModel>()
         viewModel.setEditModeVal(true) // Ensure it's in edit mode for this preview
-        NoteTopAppBar(viewModel = viewModel, onBackClick = {})
+        NoteTopAppBar(viewModel = viewModel, onBackClick = {}, onColorPick = {})
     }
 }

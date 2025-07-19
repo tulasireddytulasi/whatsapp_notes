@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width // Changed from widthIn(min = ...) to width()
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -47,7 +47,6 @@ import com.whatsapp_notes.ui.theme.NotesAppTheme
 import com.whatsapp_notes.ui.theme.Primary
 import com.whatsapp_notes.ui.theme.Purple300
 import com.whatsapp_notes.ui.theme.Purple900
-import generateRandomRainbowHexColor
 import getRelativeTime
 import java.util.Locale
 
@@ -132,9 +131,9 @@ fun NoteCard(
             verticalAlignment = Alignment.Top // Align content to top
         ) {
             // Color Strip (only for All Notes)
-            if (!note.isPinned && note.colorStripHex != null) {
+            if (!note.isPinned) {
                 val colorStripColor = Color(android.graphics.Color.parseColor
-                    (generateRandomRainbowHexColor()))
+                    (note.colorStripHex))
                 Box(
                     modifier = Modifier
                         .width(4.dp) // width: 4px

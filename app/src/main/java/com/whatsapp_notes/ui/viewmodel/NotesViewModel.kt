@@ -96,6 +96,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _selectedCategory = MutableStateFlow("")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
+    // States for Create/Edit Note Screen
+    private val _selectedColor = MutableStateFlow("#FFFFFF")
+    val selectedColor: StateFlow<String> = _selectedColor.asStateFlow()
+
     // --- New additions for category filtering ---
     private val _selectedCategoryFilter = MutableStateFlow("All") // Default to "All"
     val selectedCategoryFilter: StateFlow<String> = _selectedCategoryFilter.asStateFlow()
@@ -300,6 +304,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         _selectedCategory.value = newValue
     }
 
+    fun updateSelectedColor(newValue: String) {
+        _selectedColor.value = newValue
+    }
+
     fun loadNoteDetails(noteId: String, threadId: String) {
         viewModelScope.launch {
             val note = noteDao.getNoteById(noteId)
@@ -330,6 +338,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         val title = _noteTitle.value
         val description = _noteDescription.value
         val category = _selectedCategory.value
+        val selectedColor = _selectedColor.value
 
         if (title.isEmpty() || description.isEmpty() || category.isEmpty()) {
             onError("Please fill title, description & category fields")
@@ -366,7 +375,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                     category = category,
                     timestamp = Instant.now().toString(),
                     isPinned = false,
-                    colorStripHex = "#FF00FF"
+                    colorStripHex = selectedColor,
                 )
                 noteDao.insertNote(newNote)
 

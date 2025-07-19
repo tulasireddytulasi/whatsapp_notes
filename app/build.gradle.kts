@@ -90,4 +90,6 @@ dependencies {
 
     implementation("androidx.compose.runtime:runtime-livedata:1.8.3")
 
+    // Color Picker Compose
+    implementation("com.github.skydoves:colorpicker-compose:1.0.0")
 }
