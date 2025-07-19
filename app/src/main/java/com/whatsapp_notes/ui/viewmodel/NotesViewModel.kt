@@ -155,7 +155,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
 
-    fun clearAllSelections() {
+    private fun clearAllSelections() {
         _threadSelectionStates.value = emptyMap()
         _selectionModeActive.value = false
     }
@@ -167,28 +167,6 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     fun updateMessageInput(newValue: String) {
         _messageInput.value = newValue
         fetchMetadataForText(newValue)
-    }
-
-    fun addSampleNote() {
-        viewModelScope.launch {
-            val newNote = NoteEntity(
-                noteId = "note_${System.currentTimeMillis()}",
-                title = "Meeting at 11:30 AM Every Monday",
-                category = "Meeting",
-                timestamp = Instant.now().toString(),
-                isPinned = false,
-                colorStripHex = "#FF00FF"
-            )
-            noteDao.insertNote(newNote)
-            val newThread = ThreadEntity(
-                threadId = "thread_${System.currentTimeMillis()}",
-                noteOwnerId = newNote.noteId,
-                content = "This is a sample thread content for ${newNote.noteId}",
-                timestamp = Instant.now().toString(),
-                imageUrl = null, linkTitle = null, description = null
-            )
-            threadDao.insertThreads(listOf(newThread))
-        }
     }
 
     fun addNotes(noteEntity: NoteEntity, threadEntity: ThreadEntity) {
