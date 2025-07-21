@@ -1,6 +1,8 @@
 package com.whatsapp_notes.ui.screens.home_screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,11 +36,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.whatsapp_notes.Routes
-import com.whatsapp_notes.data.local.relations.NoteWithThreads
+import com.whatsapp_notes.data.model.NoteUiState
 import com.whatsapp_notes.ui.screens.home_screen.components.CategoryFilterButtons
 import com.whatsapp_notes.ui.screens.home_screen.components.HomeTopBar
 import com.whatsapp_notes.ui.screens.home_screen.components.NoteCard
 import com.whatsapp_notes.ui.screens.home_screen.components.SearchBar
+import com.whatsapp_notes.ui.screens.home_screen.components.SelectionAppBar
 import com.whatsapp_notes.ui.theme.DarkDefault
 import com.whatsapp_notes.ui.theme.DarkLighter
 import com.whatsapp_notes.ui.theme.Gray400
@@ -53,23 +56,27 @@ import com.whatsapp_notes.ui.viewmodel.NotesViewModel
  *
  * @param navController The NavController used for navigating between screens.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { // Add navController as a parameter
     var searchQuery by remember { mutableStateOf("") }
     val selectedCategory by notesViewModel.selectedCategoryFilter.collectAsState()
     val categories = listOf("All", "Work", "Personal", "Ideas")
-    val notesWithLastThread by notesViewModel.notesWithThreads.collectAsState(initial = emptyList())
-    val unPinnedNotes: List<NoteWithThreads> = notesWithLastThread.filter { notes ->
-        !notes.note.isPinned // The condition to check if a notes is pinned
+    val notesWithLastThread by notesViewModel.notesUiState.collectAsState(initial = emptyList())
+
+    val noteSelectionModeActive by notesViewModel.noteSelectionModeActive.collectAsState()
+    val selectedNotesCount = notesWithLastThread.count { it.isSelected }
+
+    val unPinnedNotes: List<NoteUiState> = notesWithLastThread.filter {
+        !it.note.note.isPinned // The condition to check if a notes is pinned
     }
 
     // Logic: Use the 'filter' higher-order function available on Kotlin Collections.
     // The 'filter' function iterates over each element in the 'notes' list
     // and includes it in the resulting list only if the provided lambda expression
     // evaluates to 'true' for that element.
-    val pinnedNotes: List<NoteWithThreads> = notesWithLastThread.filter { notes ->
-        notes.note.isPinned // The condition to check if a notes is pinned
+    val pinnedNotes: List<NoteUiState> = notesWithLastThread.filter { notes ->
+        notes.note.note.isPinned // The condition to check if a notes is pinned
     }
 
     Scaffold(
@@ -80,7 +87,20 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                     .background(DarkLighter)
                     .padding(bottom = 8.dp)
             ) {
-                HomeTopBar(onProfileClick = { navController.navigate(Routes.NOTES_LIST_SCREEN) })
+                if (noteSelectionModeActive) {
+                    SelectionAppBar(
+                        selectedCount = selectedNotesCount,
+                        onClearSelection = { notesViewModel.toggleNoteSelectionMode(false) },
+                        onDeleteSelected = {
+                            notesViewModel.deleteSelectedNotes()
+                        },
+                        onEditSelection = {
+                          // Todo: Impl Edit Notes
+                        },
+                    )
+                } else {
+                    HomeTopBar(onProfileClick = { navController.navigate(Routes.NOTES_LIST_SCREEN) })
+                }
 
                 SearchBar(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -151,14 +171,27 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                             items(pinnedNotes) { note ->
                                 NoteCard(
                                     noteThread = note,
-                                    cardModifier = Modifier.width(256.dp), // Fixed width for pinned notes
-                                    onClick = { clickedNote ->
-                                        // Navigate to NoteViewScreen with the note ID
-                                        navController.navigate(
-                                            "${Routes.NOTE_FIRST_ARG}/${clickedNote
-                                                .noteId}/${clickedNote.title}/${clickedNote.isPinned}"
-                                        )
-                                    }
+                                // pinned notes
+                                    cardModifier = Modifier
+                                        .width(256.dp)
+                                        .combinedClickable( // Use combinedClickable for long press
+                                            onClick = {
+                                                if (noteSelectionModeActive) {
+                                                    notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                                } else {
+                                                    navController.navigate(
+                                                        "${Routes.NOTE_FIRST_ARG}/${
+                                                            note.note.note
+                                                                .noteId
+                                                        }/${note.note.note.title}/${note.note.note.isPinned}"
+                                                    )
+                                                }
+                                            },
+                                            onLongClick = {
+                                                notesViewModel.toggleNoteSelectionMode(true)
+                                                notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                            }
+                                        ),
                                 )
                             }
                         }
@@ -195,27 +228,32 @@ fun HomeScreen(navController: NavController, notesViewModel: NotesViewModel) { /
                         unPinnedNotes.forEach { note ->
                             NoteCard(
                                 noteThread = note,
-                                cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
-                                onClick = { clickedNote ->
-                                    // Navigate to NoteViewScreen with the note ID
-                                    // Corrected navigation: Use replace to substitute the ID into
-                                    // the route pattern
-                                    navController.navigate(
-                                        "${Routes.NOTE_FIRST_ARG}/${clickedNote
-                                            .noteId}/${clickedNote.title}/${clickedNote.isPinned}"
-                                    )
-                                },
-                                onDeleteClick = { deletedNote ->
-                                    println("Delete note: ${deletedNote.title}")
-                                },
-                                onArchiveClick = { archivedNote ->
-                                    println("Archive note: ${archivedNote.title}")
-                                }
+                                cardModifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable( // Use combinedClickable for long press
+                                        onClick = {
+                                            if (noteSelectionModeActive) {
+                                                notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                            } else {
+                                                navController.navigate(
+                                                    "${Routes.NOTE_FIRST_ARG}/${
+                                                        note.note.note
+                                                            .noteId
+                                                    }/${note.note.note.title}/${note.note.note.isPinned}"
+                                                )
+                                            }
+                                        },
+                                        onLongClick = {
+                                            notesViewModel.toggleNoteSelectionMode(true)
+                                            notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                        }
+                                    ),
                             )
                         }
                     }
                 }
             }
+
         }
     }
 }

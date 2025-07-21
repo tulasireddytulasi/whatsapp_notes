@@ -61,4 +61,6 @@ interface ThreadDao {
     @Delete
     suspend fun deleteMultipleThreads(threads: List<ThreadEntity>)
 
+    @Query("DELETE FROM threads WHERE noteOwnerId IN (:noteOwnerId)")
+    suspend fun deleteThreadsByNoteIds(noteOwnerId: List<String>): Int
 }

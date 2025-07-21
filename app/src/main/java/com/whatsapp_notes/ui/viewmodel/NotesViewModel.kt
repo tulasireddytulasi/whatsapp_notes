@@ -11,6 +11,7 @@ import com.whatsapp_notes.data.local.dao.ThreadDao
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.entities.ThreadEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
+import com.whatsapp_notes.data.model.NoteUiState
 import com.whatsapp_notes.data.model.ThreadUiState
 import com.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,6 +87,15 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     private val _selectionModeActive = MutableStateFlow(false)
     val selectionModeActive: StateFlow<Boolean> = _selectionModeActive.asStateFlow()
 
+    // Selection mode active status (for notes)
+    private val _noteSelectionModeActive = MutableStateFlow(false)
+    val noteSelectionModeActive: StateFlow<Boolean> = _noteSelectionModeActive.asStateFlow()
+
+    // State for the list of NoteUiState objects
+    private val _notesUiState = MutableStateFlow<List<NoteUiState>>(emptyList())
+    val notesUiState: StateFlow<List<NoteUiState>> = _notesUiState.asStateFlow()
+
+
     // States for Create/Edit Note Screen
     private val _noteTitle = MutableStateFlow("")
     val noteTitle: StateFlow<String> = _noteTitle.asStateFlow()
@@ -127,7 +137,67 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
     init {
-       // getAllNotesWithThreads()
+        getAllNotesWithThreads()
+    }
+
+    private fun getAllNotesWithThreads() {
+        // Observe notesWithThreads and map them to NoteUiState
+        viewModelScope.launch {
+            notesWithThreads.collect { noteWithThreadsList ->
+                // Map NoteWithThreads to NoteUiState, preserving existing selection state if any
+                _notesUiState.value = noteWithThreadsList.map { noteWithThreads ->
+                    val existingUiState = _notesUiState.value.find { it.note.note.noteId ==
+                        noteWithThreads
+                        .note.noteId }
+                    NoteUiState(
+                        note = noteWithThreads,
+                        isSelected = existingUiState?.isSelected ?: false
+                    )
+                }
+            }
+        }
+    }
+
+    // New: Function to delete selected notes
+    fun deleteSelectedNotes() {
+        viewModelScope.launch {
+            val selectedNoteIds = getSelectedNotes().map { it.noteId }
+            if (selectedNoteIds.isNotEmpty()) {
+                val deletedCount = noteDao.deleteNotesByIds(selectedNoteIds)
+                Log.d("NotesViewModel", "Deleted $deletedCount selected notes.")
+                // Also delete associated threads
+                threadDao.deleteThreadsByNoteIds(selectedNoteIds)
+                clearAllNoteSelections() // Clear note selections after deletion
+            }
+        }
+    }
+
+    // Functions for managing note selection
+    fun toggleNoteSelectionMode(isActive: Boolean) {
+        _noteSelectionModeActive.value = isActive
+        if (!isActive) {
+            clearAllNoteSelections()
+        }
+    }
+    fun toggleNoteSelection(noteId: String) {
+        _notesUiState.value = _notesUiState.value.map { noteUiState ->
+            if (noteUiState.note.note.noteId == noteId) {
+                noteUiState.copy(isSelected = !noteUiState.isSelected)
+            } else {
+                noteUiState
+            }
+        }
+        // Update selection mode active status based on whether any notes are selected
+        _noteSelectionModeActive.value = _notesUiState.value.any { it.isSelected }
+    }
+
+    fun getSelectedNotes(): List<NoteEntity> {
+        return _notesUiState.value.filter { it.isSelected }.map { it.note.note }
+    }
+
+    fun clearAllNoteSelections() {
+        _notesUiState.value = _notesUiState.value.map { it.copy(isSelected = false) }
+        _noteSelectionModeActive.value = false
     }
 
     fun setCurrentNoteId(noteId: String?) {

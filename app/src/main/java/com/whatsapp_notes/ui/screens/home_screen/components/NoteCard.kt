@@ -1,9 +1,9 @@
 package com.whatsapp_notes.ui.screens.home_screen.components
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.data.model.Note
+import com.whatsapp_notes.data.model.NoteUiState
 import com.whatsapp_notes.ui.theme.Blue300
 import com.whatsapp_notes.ui.theme.Blue900
 import com.whatsapp_notes.ui.theme.DarkDarker
@@ -60,24 +61,25 @@ import java.util.Locale
  * @param onDeleteClick Lambda to be invoked when the delete action is triggered (e.g., via swipe).
  * @param onArchiveClick Lambda to be invoked when the archive action is triggered (e.g., via swipe).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteCard(
-    noteThread: NoteWithThreads,
-    @SuppressLint("ModifierParameter") cardModifier: Modifier = Modifier, // Modifier to control card width
-    onClick: (NoteEntity) -> Unit,
-    onDeleteClick: (NoteEntity) -> Unit = {}, // Default empty lambda for optional actions
-    onArchiveClick: (NoteEntity) -> Unit = {}  // Default empty lambda for optional actions
+    noteThread: NoteUiState,
+    // Modifier to control card width
+    @SuppressLint("ModifierParameter") cardModifier: Modifier = Modifier,
 ) {
-    val note = noteThread.note
-    val thread = noteThread.threads?.firstOrNull()?.content
+    val noteUIState = noteThread.note
+    val isSelected = noteThread.isSelected
+    val note = noteUIState.note
+    val thread = noteUIState.threads?.firstOrNull()?.content
+    val bgColor = if (isSelected) Color.White else DarkDarker
 
     Box(
         modifier = cardModifier
             .clip(RoundedCornerShape(8.dp)) // rounded-md equivalent
             .background(DarkLighter)
-            .border(1.dp, DarkDarker, RoundedCornerShape(8.dp)) // border border-dark-darker
-            .clickable { onClick(note) } // This is the main click handler for the card
-            .height(IntrinsicSize.Min) // Allow children to define min height
+            .border(1.dp, bgColor, RoundedCornerShape(8.dp)) // border
+            .height(IntrinsicSize.Min), // Allow children to define min height
     ) {
         // Swipe Actions (Visual placeholders for now, actual logic will be added later)
         // These are only relevant for 'All Notes', but included here for completeness
@@ -132,8 +134,10 @@ fun NoteCard(
         ) {
             // Color Strip (only for All Notes)
             if (!note.isPinned) {
-                val colorStripColor = Color(android.graphics.Color.parseColor
-                    (note.colorStripHex))
+                val colorStripColor = Color(
+                    android.graphics.Color.parseColor
+                        (note.colorStripHex)
+                )
                 Box(
                     modifier = Modifier
                         .width(4.dp) // width: 4px
@@ -236,19 +240,21 @@ fun NoteCard(
 fun NoteCardPinnedPreview() {
     NotesAppTheme {
         NoteCard(
-            noteThread = NoteWithThreads(
-                note = NoteEntity(
-                    noteId = "4",
-                    title = "Grocery Shopping List",
-                    category = "Personal",
-                    timestamp = "4 hours ago",
-                    isPinned = true,
-                    colorStripHex = "#EF4444",
+            noteThread = NoteUiState(
+                isSelected = false,
+                note = NoteWithThreads(
+                    note = NoteEntity(
+                        noteId = "4",
+                        title = "Grocery Shopping List",
+                        category = "Personal",
+                        timestamp = "4 hours ago",
+                        isPinned = false,
+                        colorStripHex = "#EF4444",
+                    ),
+                    threads = emptyList()
                 ),
-                threads = emptyList()
             ),
             cardModifier = Modifier.width(256.dp), // Fixed width for pinned
-            onClick = {}
         )
     }
 }
@@ -261,21 +267,21 @@ fun NoteCardPinnedPreview() {
 fun NoteCardAllPreview() {
     NotesAppTheme {
         NoteCard(
-            noteThread = NoteWithThreads(
-                note = NoteEntity(
-                    noteId = "4",
-                    title = "Grocery Shopping List",
-                    category = "Personal",
-                    timestamp = "4 hours ago",
-                    isPinned = false,
-                    colorStripHex = "#EF4444",
+            noteThread = NoteUiState(
+                isSelected = false,
+                note = NoteWithThreads(
+                    note = NoteEntity(
+                        noteId = "4",
+                        title = "Grocery Shopping List",
+                        category = "Personal",
+                        timestamp = "4 hours ago",
+                        isPinned = false,
+                        colorStripHex = "#EF4444",
+                    ),
+                    threads = emptyList()
                 ),
-                threads = emptyList()
             ),
             cardModifier = Modifier.fillMaxWidth(), // Fill width for all notes
-            onClick = {},
-            onDeleteClick = {},
-            onArchiveClick = {}
         )
     }
 }
