@@ -146,9 +146,11 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             notesWithThreads.collect { noteWithThreadsList ->
                 // Map NoteWithThreads to NoteUiState, preserving existing selection state if any
                 _notesUiState.value = noteWithThreadsList.map { noteWithThreads ->
-                    val existingUiState = _notesUiState.value.find { it.note.note.noteId ==
-                        noteWithThreads
-                        .note.noteId }
+                    val existingUiState = _notesUiState.value.find {
+                        it.note.note.noteId ==
+                                noteWithThreads
+                                    .note.noteId
+                    }
                     NoteUiState(
                         note = noteWithThreads,
                         isSelected = existingUiState?.isSelected ?: false
@@ -179,6 +181,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             clearAllNoteSelections()
         }
     }
+
     fun toggleNoteSelection(noteId: String) {
         _notesUiState.value = _notesUiState.value.map { noteUiState ->
             if (noteUiState.note.note.noteId == noteId) {
@@ -330,6 +333,42 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 addThread(newThread)
                 _messageInput.value = ""
                 clearLinkMetadata()
+            }
+        }
+    }
+
+    fun updateNotes(title: String) {
+        viewModelScope.launch {
+            try {
+                val selectedNoteIds = getSelectedNotes().map { it.noteId }
+                val noteId = selectedNoteIds.firstOrNull() ?: return@launch
+                lateinit var newNote: NoteEntity
+                val updatedNotes = noteDao.getNoteById(noteId)
+                // current state
+                updatedNotes?.let { notes ->
+                    newNote = notes.copy(
+                        title = title,
+                        // category = category,
+                        timestamp = Instant.now().toString(),
+                        colorStripHex = _selectedColor.value,
+                    )
+                }
+                val rowsUpdated = noteDao.updateNote(newNote)
+                if (rowsUpdated > 0) {
+                    Log.d(
+                        "NotesViewModel",
+                        "Notes ${updatedNotes?.noteId ?: ""} updated successfully."
+                    )
+                    // If your UI relies on the Flow from getThreadsForNote(),
+                    // the UI will automatically update when Room emits the new data.
+                } else {
+                    Log.w(
+                        "NotesViewModel",
+                        "Notes ${updatedNotes?.noteId ?: ""} not found for update."
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("NotesViewModel", "Error updating notes}", e)
             }
         }
     }

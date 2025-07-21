@@ -73,8 +73,6 @@ fun ColorPickerDialog(
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
                     // Controller for the HsvColorPicker
-                    val controller = rememberColorPickerController()
-
                     AlphaTile(
                         modifier = Modifier
                             .fillMaxWidth()

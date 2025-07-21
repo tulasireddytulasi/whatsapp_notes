@@ -42,7 +42,7 @@ interface NoteDao {
     suspend fun insertNote(note: NoteEntity) // Still suspend for write operations
 
     @Update
-    suspend fun updateNote(note: NoteEntity) // Still suspend for write operations
+    suspend fun updateNote(note: NoteEntity): Int // Still suspend for write operations
 
     @Delete
     suspend fun deleteNote(note: NoteEntity) // Still suspend for write operations
