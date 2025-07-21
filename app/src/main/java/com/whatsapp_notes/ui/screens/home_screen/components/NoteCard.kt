@@ -198,12 +198,14 @@ fun NoteCard(
                         "work" -> Blue900
                         "personal" -> Green900
                         "ideas" -> Purple900
+                        "others" -> Blue900
                         else -> DarkLighter // Default for unknown categories
                     }
                     val categoryTextColor = when (note.category.lowercase(Locale.getDefault())) {
                         "work" -> Blue300
                         "personal" -> Green300
                         "ideas" -> Purple300
+                        "others" -> Blue300
                         else -> Gray300 // Default for unknown categories
                     }
 

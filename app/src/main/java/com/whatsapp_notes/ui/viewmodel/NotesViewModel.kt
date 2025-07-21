@@ -500,6 +500,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 threadDao.insertThreads(listOf(newThread))
                 onSuccess(newNote)
             }
+            resetNoteCreationState()
         }
     }
 
@@ -511,6 +512,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         _noteTitle.value = ""
         _noteDescription.value = ""
         _selectedCategory.value = ""
+        _selectedColor.value = "#FFFFFF"
         clearLinkMetadata()
     }
 }

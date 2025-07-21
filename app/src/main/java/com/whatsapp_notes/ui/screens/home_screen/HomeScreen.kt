@@ -72,7 +72,7 @@ fun HomeScreen(
 ) { // Add navController as a parameter
     var searchQuery by remember { mutableStateOf("") }
     val selectedCategory by notesViewModel.selectedCategoryFilter.collectAsState()
-    val categories = listOf("All", "Work", "Personal", "Ideas")
+    val categories = listOf("All", "Work", "Personal", "Ideas", "Others")
     val notesWithLastThread by notesViewModel.notesUiState.collectAsState(initial = emptyList())
 
     val noteSelectionModeActive by notesViewModel.noteSelectionModeActive.collectAsState()

@@ -73,7 +73,7 @@ fun CreateEditNoteScreen(
     val isLoadingLinkMetadata by notesViewModel.isLoadingLinkMetadata.observeAsState(false)
 
 
-    val categories = listOf("Work", "Personal", "Ideas", "Travel")
+    val categories = listOf("Work", "Personal", "Ideas", "Others")
 
     // Determine if we are in edit mode
     val isEditMode = (threadIdToEdit != "{threadId}") && (noteId != "{noteId}")
