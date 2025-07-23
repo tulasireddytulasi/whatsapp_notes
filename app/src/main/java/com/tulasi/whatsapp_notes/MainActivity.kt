@@ -22,6 +22,7 @@ import com.tulasi.whatsapp_notes.data.local.database.NotesDatabase
 import com.tulasi.whatsapp_notes.ui.screens.create_edit_notes_screen.CreateEditNoteScreen
 import com.tulasi.whatsapp_notes.ui.screens.home_screen.HomeScreen
 import com.tulasi.whatsapp_notes.ui.screens.notes_view_screen.NoteViewScreen
+import com.tulasi.whatsapp_notes.ui.screens.settings_screen.SettingsScreen
 import com.tulasi.whatsapp_notes.ui.theme.NotesAppTheme
 import com.tulasi.whatsapp_notes.ui.viewmodel.NotesViewModel
 import com.tulasi.whatsapp_notes.ui.viewmodel.NotesViewModelFactory
@@ -39,7 +40,7 @@ object Routes {
     const val EDIT_FIRST_ARG = "create_edit_screen"
     const val CREATE_EDIT_SCREEN = "${EDIT_FIRST_ARG}/{noteId}/{threadId}"
     const val THREAD_ID_ARG = "threadId" // Argument key
-    const val NOTES_LIST_SCREEN = "notes_list_screen"
+    const val SETTINGS_SCREEN = "settings_screen"
 }
 
 /**
@@ -89,6 +90,23 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 notesViewModel = notesViewModel,
                             )
+                        }
+                        composable(
+                            Routes.SETTINGS_SCREEN,
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Right,
+                                    tween(animDurationMS)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Left,
+                                    tween(animDurationMS)
+                                )
+                            },
+                        ) {
+                            SettingsScreen()
                         }
                         // Define the route for the Note View Screen with a noteId argument
                         composable(
