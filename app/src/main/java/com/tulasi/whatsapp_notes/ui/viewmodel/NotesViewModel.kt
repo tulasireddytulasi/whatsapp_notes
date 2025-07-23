@@ -125,10 +125,12 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         val selectedButNotYetPinnedCount = selected.count { !it.note.note.isPinned }
 
         // Show pin icon if:
-        // 1. There is at least one note selected.
-        // 2. AND, if we were to pin all currently selected unpinned notes,
+        // 1. Show pin icon if there's at least one selected note that is not yet pinned
+        // 2. There is at least one note selected.
+        // 3. AND, if we were to pin all currently selected unpinned notes,
         //    the total number of pinned notes would NOT exceed the maximum allowed.
-        selected.isNotEmpty() && (currentlyPinnedCount + selectedButNotYetPinnedCount <= MAX_PINNED_NOTES)
+        selectedButNotYetPinnedCount > 0 && (selected.isNotEmpty() && (currentlyPinnedCount +
+                selectedButNotYetPinnedCount <= MAX_PINNED_NOTES))
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
