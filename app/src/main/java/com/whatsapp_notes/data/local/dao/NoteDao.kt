@@ -52,4 +52,15 @@ interface NoteDao {
 
     @Query("DELETE FROM notes WHERE noteId IN (:noteIds)")
     suspend fun deleteNotesByIds(noteIds: List<String>): Int
+
+    /**
+     * Updates the pinned status of a list of notes.
+     *
+     * @param noteIds The list of note IDs to update.
+     * @param isPinnedStatus The new pinned status (true for pinned, false for unpinned).
+     * @return The number of rows updated.
+     */
+    @Query("UPDATE notes SET isPinned = :isPinnedStatus WHERE noteId IN (:noteIds)")
+    suspend fun updateNotesPinnedStatus(noteIds: List<String>, isPinnedStatus: Boolean): Int
+
 }

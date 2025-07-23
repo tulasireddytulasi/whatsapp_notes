@@ -77,7 +77,6 @@ fun HomeScreen(
 
     val noteSelectionModeActive by notesViewModel.noteSelectionModeActive.collectAsState()
     val selectedNotesCount = notesWithLastThread.count { it.isSelected }
-
     val showPin = notesViewModel.showPinIcon.collectAsState()
 
     val unPinnedNotes: List<NoteUiState> = notesWithLastThread.filter {
@@ -118,7 +117,9 @@ fun HomeScreen(
                             // Todo: Impl Edit Notes
                             showBottomSheet = true
                         },
-                        onPinnedSelected = {},
+                        onPinnedSelected = {
+                            notesViewModel.updatePinStatus()
+                        },
                     )
                 } else {
                     HomeTopBar(onProfileClick = { navController.navigate(Routes.NOTES_LIST_SCREEN) })

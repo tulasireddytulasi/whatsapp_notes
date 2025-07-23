@@ -139,6 +139,37 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         const val MAX_PINNED_NOTES = 4 // Maximum number of notes allowed to be pinned
     }
 
+    /**
+     * Pins all currently selected notes that are not already pinned,
+     * up to the MAX_PINNED_NOTES limit.
+     * All selected notes are deselected after the operation.
+     */
+    fun updatePinStatus() {
+        viewModelScope.launch {
+            // Separate notes into pinned and unpinned based on current selection
+            val (selectedPinnedNotes, selectedUnpinnedNotes) = getSelectedNotes().partition { it.isPinned }
+            val targetIsPinnedStatus: Boolean
+            val notesToUpdate = if (selectedUnpinnedNotes.isNotEmpty()) {
+                targetIsPinnedStatus = true // Set to true to pin them
+                // If there are unpinned notes selected, pin them
+                selectedUnpinnedNotes.map { it.noteId }
+            } else {
+                targetIsPinnedStatus = false // Set to false to unpin them
+                // Otherwise, if there are pinned notes selected, unpin them
+                selectedPinnedNotes.map { it.noteId }
+            }
+
+            if (notesToUpdate.isNotEmpty()) {
+                val updatedCount = noteDao.updateNotesPinnedStatus(notesToUpdate, targetIsPinnedStatus)
+                Log.d("NotesViewModel", "Updated pin status for $updatedCount selected notes.")
+                clearAllNoteSelections() // Clear note selections after update
+            } else {
+                // Optional: Log if no selected notes were found for status update
+                Log.d("NotesViewModel", "No selected notes to update pin status.")
+            }
+        }
+    }
+
 
     // States for Create/Edit Note Screen
     private val _noteTitle = MutableStateFlow("")
