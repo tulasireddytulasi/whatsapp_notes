@@ -1,4 +1,4 @@
-package com.whatsapp_notes
+package com.tulasi.whatsapp_notes
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.whatsapp_notes", appContext.packageName)
+        assertEquals("com.tulasi.whatsapp_notes", appContext.packageName)
     }
 }

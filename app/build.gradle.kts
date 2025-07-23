@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.whatsapp_notes"
+    namespace = "com.tulasi.whatsapp_notes"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.whatsapp_notes"
+        applicationId = "com.tulasi.whatsapp_notes"
         minSdk = 32
         targetSdk = 35
         versionCode = 1

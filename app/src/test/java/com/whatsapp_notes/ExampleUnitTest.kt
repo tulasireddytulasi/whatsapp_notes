@@ -1,4 +1,4 @@
-package com.whatsapp_notes
+package com.tulasi.whatsapp_notes
 
 import org.junit.Test
 
