@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whatsapp_notes.R
 import com.whatsapp_notes.data.local.entities.NoteEntity
 import com.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.whatsapp_notes.data.model.Note
@@ -168,14 +169,14 @@ fun NoteCard(
                     // Pin Icon (only for Pinned Notes)
                     if (note.isPinned) {
                         Box(
-                            modifier = Modifier.size(16.dp), // w-4 h-4
+                            modifier = Modifier.size(20.dp), // w-4 h-4
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Place, // ri-pushpin-fill
+                                painter = painterResource(id = R.drawable.pin_filled), // ri-pushpin-fill
                                 contentDescription = "Pinned",
                                 tint = Primary, // text-primary
-                                modifier = Modifier.size(12.dp) // ri-sm equivalent
+                                modifier = Modifier.size(20.dp) // ri-sm equivalent
                             )
                         }
                     }
