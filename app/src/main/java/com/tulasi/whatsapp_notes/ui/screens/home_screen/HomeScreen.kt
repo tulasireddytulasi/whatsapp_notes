@@ -224,54 +224,56 @@ fun HomeScreen(
 
             // All Notes Section
             item {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "All Notes",
-                            fontSize = 14.sp, // text-sm
-                            color = Gray400, // text-gray-400
-                            style = MaterialTheme.typography.labelSmall // font-medium
-                        )
-                        Text(
-                            text = "${unPinnedNotes.size} notes",
-                            fontSize = 12.sp, // text-xs
-                            color = Gray500 // text-gray-500
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3 equivalent
-                    ) {
-                        unPinnedNotes.forEach { note ->
-                            NoteCard(
-                                noteThread = note,
-                                cardModifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedClickable( // Use combinedClickable for long press
-                                        onClick = {
-                                            if (noteSelectionModeActive) {
-                                                notesViewModel.toggleNoteSelection(note.note.note.noteId)
-                                            } else {
-                                                navController.navigate(
-                                                    "${Routes.NOTE_FIRST_ARG}/${
-                                                        note.note.note
-                                                            .noteId
-                                                    }/${note.note.note.title}/${note.note.note.isPinned}"
-                                                )
-                                            }
-                                        },
-                                        onLongClick = {
-                                            notesViewModel.toggleNoteSelectionMode(true)
-                                            notesViewModel.toggleNoteSelection(note.note.note.noteId)
-                                        }
-                                    ),
+                if(unPinnedNotes.isNotEmpty()){
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "All Notes",
+                                fontSize = 14.sp, // text-sm
+                                color = Gray400, // text-gray-400
+                                style = MaterialTheme.typography.labelSmall // font-medium
                             )
+                            Text(
+                                text = "${unPinnedNotes.size} notes",
+                                fontSize = 12.sp, // text-xs
+                                color = Gray500 // text-gray-500
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp) // space-y-3 equivalent
+                        ) {
+                            unPinnedNotes.forEach { note ->
+                                NoteCard(
+                                    noteThread = note,
+                                    cardModifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable( // Use combinedClickable for long press
+                                            onClick = {
+                                                if (noteSelectionModeActive) {
+                                                    notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                                } else {
+                                                    navController.navigate(
+                                                        "${Routes.NOTE_FIRST_ARG}/${
+                                                            note.note.note
+                                                                .noteId
+                                                        }/${note.note.note.title}/${note.note.note.isPinned}"
+                                                    )
+                                                }
+                                            },
+                                            onLongClick = {
+                                                notesViewModel.toggleNoteSelectionMode(true)
+                                                notesViewModel.toggleNoteSelection(note.note.note.noteId)
+                                            }
+                                        ),
+                                )
+                            }
                         }
                     }
                 }
