@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -94,6 +95,49 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     // State for the list of NoteUiState objects
     private val _notesUiState = MutableStateFlow<List<NoteUiState>>(emptyList())
     val notesUiState: StateFlow<List<NoteUiState>> = _notesUiState.asStateFlow()
+
+    // Derived StateFlow for notes that are currently pinned.
+    val pinnedNotes: StateFlow<List<NoteUiState>> = _notesUiState.map { notes ->
+        notes.filter { it.note.note.isPinned }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    // Derived StateFlow for notes that are currently selected by the user.
+    val selectedNotes: StateFlow<List<NoteUiState>> = _notesUiState.map { notes ->
+        notes.filter { it.isSelected }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000), // Keep active while UI is subscribed
+        initialValue = emptyList()
+    )
+
+    // Derived StateFlow to control the visibility of the "Pin" icon in the UI.
+    // It's visible if there are selected notes AND pinning them wouldn't exceed the limit.
+    val showPinIcon: StateFlow<Boolean> = combine(
+        selectedNotes, // Depends on which notes are selected
+        pinnedNotes    // Depends on how many notes are already pinned
+    ) { selected, pinned ->
+        val currentlyPinnedCount = pinned.size
+        // Count selected notes that are NOT already pinned
+        val selectedButNotYetPinnedCount = selected.count { !it.note.note.isPinned }
+
+        // Show pin icon if:
+        // 1. There is at least one note selected.
+        // 2. AND, if we were to pin all currently selected unpinned notes,
+        //    the total number of pinned notes would NOT exceed the maximum allowed.
+        selected.isNotEmpty() && (currentlyPinnedCount + selectedButNotYetPinnedCount <= MAX_PINNED_NOTES)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+
+    companion object {
+        const val MAX_PINNED_NOTES = 4 // Maximum number of notes allowed to be pinned
+    }
 
 
     // States for Create/Edit Note Screen

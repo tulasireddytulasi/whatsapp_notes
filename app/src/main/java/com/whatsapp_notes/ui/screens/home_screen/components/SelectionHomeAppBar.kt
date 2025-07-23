@@ -1,5 +1,6 @@
 package com.whatsapp_notes.ui.screens.home_screen.components
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -12,11 +13,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.whatsapp_notes.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectionAppBar(
     selectedCount: Int,
+    showPinIcon: Boolean,
+    onPinnedSelected: () -> Unit,
     onEditSelection: () -> Unit,
     onClearSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
@@ -33,6 +41,16 @@ fun SelectionAppBar(
             }
         },
         actions = {
+            if (showPinIcon) {
+                IconButton(onClick = onPinnedSelected) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.pin_filled),
+                        contentDescription = "Pin selected",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
             if (selectedCount < 2) {
                 IconButton(onClick = onEditSelection) {
                     Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
