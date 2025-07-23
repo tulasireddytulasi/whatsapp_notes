@@ -122,7 +122,7 @@ fun HomeScreen(
                         },
                     )
                 } else {
-                    HomeTopBar(onProfileClick = { navController.navigate(Routes.NOTES_LIST_SCREEN) })
+                    HomeTopBar(onProfileClick = {})
                 }
 
                 SearchBar(
