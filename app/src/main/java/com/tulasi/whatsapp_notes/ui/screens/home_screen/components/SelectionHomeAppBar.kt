@@ -41,15 +41,14 @@ fun SelectionAppBar(
             }
         },
         actions = {
-            if (showPinIcon) {
-                IconButton(onClick = onPinnedSelected) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.pin_filled),
-                        contentDescription = "Pin selected",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
+            val pinIcon = if (showPinIcon) R.drawable.pin_filled else R.drawable.pin_off_filled
+            IconButton(onClick = onPinnedSelected) {
+                Icon(
+                    painter = painterResource(id = pinIcon),
+                    contentDescription = "Pin selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp),
+                )
             }
             if (selectedCount < 2) {
                 IconButton(onClick = onEditSelection) {

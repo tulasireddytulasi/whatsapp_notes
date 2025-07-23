@@ -1,5 +1,6 @@
 package com.tulasi.whatsapp_notes.ui.screens.home_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -34,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,6 +72,7 @@ fun HomeScreen(
     navController: NavController,
     notesViewModel: NotesViewModel
 ) { // Add navController as a parameter
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     val selectedCategory by notesViewModel.selectedCategoryFilter.collectAsState()
     val categories = listOf("All", "Work", "Personal", "Ideas", "Others")
@@ -118,7 +121,12 @@ fun HomeScreen(
                             showBottomSheet = true
                         },
                         onPinnedSelected = {
-                            notesViewModel.updatePinStatus()
+                            notesViewModel.updatePinStatus(
+                                onSuccess = {},
+                                onError = {
+                                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                                },
+                            )
                         },
                     )
                 } else {

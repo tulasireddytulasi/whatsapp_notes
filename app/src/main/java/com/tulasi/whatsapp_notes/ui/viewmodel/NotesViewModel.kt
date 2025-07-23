@@ -144,8 +144,16 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
      * up to the MAX_PINNED_NOTES limit.
      * All selected notes are deselected after the operation.
      */
-    fun updatePinStatus() {
+    fun updatePinStatus(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
         viewModelScope.launch {
+            if (getSelectedNotes().size >= 5) {
+                Log.d("NotesViewModel", "Max Pinned Notes Limit exceeded.")
+                onError("Max Pinned Notes Limit exceeded.");
+                return@launch
+            }
             // Separate notes into pinned and unpinned based on current selection
             val (selectedPinnedNotes, selectedUnpinnedNotes) = getSelectedNotes().partition { it.isPinned }
             val targetIsPinnedStatus: Boolean
