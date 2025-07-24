@@ -141,6 +141,7 @@ fun HomeScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     onSearchQueryChange = { newQuery ->
                         searchQuery = newQuery
+                        Toast.makeText(context, "Search notes disabled", Toast.LENGTH_SHORT).show()
                         println("Search query changed to: $searchQuery")
                     },
                     currentQuery = searchQuery
