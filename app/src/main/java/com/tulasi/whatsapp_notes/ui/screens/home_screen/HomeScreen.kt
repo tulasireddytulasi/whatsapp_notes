@@ -61,6 +61,7 @@ import com.tulasi.whatsapp_notes.ui.theme.Gray500
 import com.tulasi.whatsapp_notes.ui.theme.NotesAppTheme
 import com.tulasi.whatsapp_notes.ui.viewmodel.NotesViewModel
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 /**
  * Composable function for the main Home Screen layout of the Notes App.
@@ -87,7 +88,7 @@ fun HomeScreen(
 
     val unPinnedNotes: List<NoteUiState> = notesWithLastThread.filter {
         !it.note.note.isPinned // The condition to check if a notes is pinned
-    }
+    }.sortedByDescending { Instant.parse(it.note.note.timestamp) }
 
     // Logic: Use the 'filter' higher-order function available on Kotlin Collections.
     // The 'filter' function iterates over each element in the 'notes' list
@@ -95,7 +96,7 @@ fun HomeScreen(
     // evaluates to 'true' for that element.
     val pinnedNotes: List<NoteUiState> = notesWithLastThread.filter { notes ->
         notes.note.note.isPinned // The condition to check if a notes is pinned
-    }
+    }.sortedByDescending { Instant.parse(it.note.note.timestamp) }
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()

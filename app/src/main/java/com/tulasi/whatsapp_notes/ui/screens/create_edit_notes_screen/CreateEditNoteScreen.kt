@@ -103,7 +103,10 @@ fun CreateEditNoteScreen(
                 // The CreateEditNoteViewModel is not used here anymore, can be removed if not needed elsewhere
                 // If it's for top app bar specific actions, it can remain.
                 viewModel = viewModel(), // Consider passing NotesViewModel if actions relate to it
-                onBackClick = { navController.popBackStack() },
+                onBackClick = {
+                    notesViewModel.resetNoteCreationState()
+                    navController.popBackStack()
+                },
                 selectedColor = selectedColorData,
                 onColorPick = { showColorPickerDialog = !showColorPickerDialog },
             )
