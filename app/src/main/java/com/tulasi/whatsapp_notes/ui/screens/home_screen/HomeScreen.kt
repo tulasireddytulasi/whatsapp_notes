@@ -3,7 +3,9 @@ package com.tulasi.whatsapp_notes.ui.screens.home_screen
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +101,8 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showColorPickerDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current // Get the FocusManager
+
 
 
     Scaffold(
@@ -107,6 +112,12 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .background(DarkLighter)
                     .padding(bottom = 8.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() }, // Required
+                        indication = null // This removes the ripple effect
+                    ) {
+                        focusManager.clearFocus() // Unfocus when clicking outside text fields
+                    }
             ) {
                 if (noteSelectionModeActive) {
                     SelectionAppBar(
@@ -131,6 +142,7 @@ fun HomeScreen(
                     )
                 } else {
                     HomeTopBar(onProfileClick = {
+                        focusManager.clearFocus()
                         navController.navigate(
                             Routes.SETTINGS_SCREEN
                         )
@@ -176,6 +188,12 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() }, // Required
+                    indication = null // This removes the ripple effect
+                ) {
+                    focusManager.clearFocus() // Unfocus when clicking outside text fields
+                }
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -213,6 +231,7 @@ fun HomeScreen(
                                         .width(256.dp)
                                         .combinedClickable( // Use combinedClickable for long press
                                             onClick = {
+                                                focusManager.clearFocus()
                                                 if (noteSelectionModeActive) {
                                                     notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                                 } else {
@@ -225,6 +244,7 @@ fun HomeScreen(
                                                 }
                                             },
                                             onLongClick = {
+                                                focusManager.clearFocus()
                                                 notesViewModel.toggleNoteSelectionMode(true)
                                                 notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                             }
