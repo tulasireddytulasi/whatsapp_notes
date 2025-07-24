@@ -13,7 +13,10 @@ import com.tulasi.whatsapp_notes.data.local.entities.ThreadEntity
 import com.tulasi.whatsapp_notes.data.local.relations.NoteWithThreads
 import com.tulasi.whatsapp_notes.data.model.NoteUiState
 import com.tulasi.whatsapp_notes.data.model.ThreadUiState
+import com.tulasi.whatsapp_notes.data.repository.DummyNotesRepo
+import com.tulasi.whatsapp_notes.data.repository.ThreadRepository
 import com.tulasi.whatsapp_notes.ui.screens.create_edit_notes_screen.common.LinkMetadataFetcher
+import com.tulasi.whatsapp_notes.utils.SharedPreferencesManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,7 +29,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 
-class NotesViewModel(private val noteDao: NoteDao, private val threadDao: ThreadDao) : ViewModel() {
+class NotesViewModel(
+    private val noteDao: NoteDao, private val threadDao: ThreadDao,
+    private val sharedPreferencesManager: SharedPreferencesManager,
+) : ViewModel() {
 
     private val _currentNoteId = MutableStateFlow<String?>(null)
 
@@ -35,28 +41,24 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
 
     // The actual UI-facing StateFlow for ThreadUiState objects
     @OptIn(ExperimentalCoroutinesApi::class)
-    val threads: StateFlow<List<ThreadUiState>> = _currentNoteId
-        .flatMapLatest { noteId ->
-            if (noteId != null) {
-                threadDao.getThreadsForNote(noteId) // Database source of truth for ThreadEntity
-            } else {
-                MutableStateFlow(emptyList())
-            }
+    val threads: StateFlow<List<ThreadUiState>> = _currentNoteId.flatMapLatest { noteId ->
+        if (noteId != null) {
+            threadDao.getThreadsForNote(noteId) // Database source of truth for ThreadEntity
+        } else {
+            MutableStateFlow(emptyList())
         }
-        .combine(_threadSelectionStates) { threadEntities, selectionMap ->
-            // Map ThreadEntity to ThreadUiState, reapplying current selection status
-            threadEntities.map { entity ->
-                ThreadUiState(
-                    thread = entity,
-                    isSelected = selectionMap[entity.threadId] ?: false
-                )
-            }
+    }.combine(_threadSelectionStates) { threadEntities, selectionMap ->
+        // Map ThreadEntity to ThreadUiState, reapplying current selection status
+        threadEntities.map { entity ->
+            ThreadUiState(
+                thread = entity, isSelected = selectionMap[entity.threadId] ?: false
+            )
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // Keep active for 5 seconds after last observer
-            initialValue = emptyList() // Initial value for the combined flow
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000), // Keep active for 5 seconds after last observer
+        initialValue = emptyList() // Initial value for the combined flow
+    )
 
     private val _messageInput = MutableStateFlow("")
     val messageInput: StateFlow<String> = _messageInput.asStateFlow()
@@ -129,12 +131,9 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
         // 2. There is at least one note selected.
         // 3. AND, if we were to pin all currently selected unpinned notes,
         //    the total number of pinned notes would NOT exceed the maximum allowed.
-        selectedButNotYetPinnedCount > 0 && (selected.isNotEmpty() && (currentlyPinnedCount +
-                selectedButNotYetPinnedCount <= MAX_PINNED_NOTES))
+        selectedButNotYetPinnedCount > 0 && (selected.isNotEmpty() && (currentlyPinnedCount + selectedButNotYetPinnedCount <= MAX_PINNED_NOTES))
     }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false
     )
 
     companion object {
@@ -170,7 +169,8 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
             }
 
             if (notesToUpdate.isNotEmpty()) {
-                val updatedCount = noteDao.updateNotesPinnedStatus(notesToUpdate, targetIsPinnedStatus)
+                val updatedCount =
+                    noteDao.updateNotesPinnedStatus(notesToUpdate, targetIsPinnedStatus)
                 Log.d("NotesViewModel", "Updated pin status for $updatedCount selected notes.")
                 clearAllNoteSelections() // Clear note selections after update
             } else {
@@ -201,15 +201,14 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
 
     // This will now be the main source for notesWithThreads, filtered by category
     @OptIn(ExperimentalCoroutinesApi::class)
-    val notesWithThreads: StateFlow<List<NoteWithThreads>> = _selectedCategoryFilter
-        .flatMapLatest { category ->
+    val notesWithThreads: StateFlow<List<NoteWithThreads>> =
+        _selectedCategoryFilter.flatMapLatest { category ->
             if (category == "All") {
                 noteDao.getAllNotesWithThreads() // Get all notes if category is "All"
             } else {
                 noteDao.getNotesWithThreadsByCategory(category) // Filter by specific category
             }
-        }
-        .stateIn(
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
@@ -222,7 +221,26 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
     init {
-        getAllNotesWithThreads()
+        if (sharedPreferencesManager.isFirstLaunch()) {
+            getDummyData()
+            getAllNotesWithThreads()
+        } else {
+            getAllNotesWithThreads()
+            // Not first launch: Load user's actual notes
+            // IMPORTANT: In a real app, you would load notes from Room/SQLite/DataStore here.
+            // For this example, we'll start with an empty list if not the first launch.
+        }
+    }
+
+    fun getDummyData() {
+        viewModelScope.launch {
+            // First launch: Add dummy data
+            noteDao.insertNotes(DummyNotesRepo.getFakeNotesData())
+            threadDao.insertThreads(ThreadRepository.getAllThreads())
+            sharedPreferencesManager.setFirstLaunch(false) // Mark as not first launch anymore
+            // In a real app, you might also save these dummy notes to your database here
+            // saveNotesToDatabase(DummyNotesData.notes)
+        }
     }
 
     private fun getAllNotesWithThreads() {
@@ -232,13 +250,10 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 // Map NoteWithThreads to NoteUiState, preserving existing selection state if any
                 _notesUiState.value = noteWithThreadsList.map { noteWithThreads ->
                     val existingUiState = _notesUiState.value.find {
-                        it.note.note.noteId ==
-                                noteWithThreads
-                                    .note.noteId
+                        it.note.note.noteId == noteWithThreads.note.noteId
                     }
                     NoteUiState(
-                        note = noteWithThreads,
-                        isSelected = existingUiState?.isSelected ?: false
+                        note = noteWithThreads, isSelected = existingUiState?.isSelected ?: false
                     )
                 }
             }
@@ -468,15 +483,13 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
                 val rowsUpdated = threadDao.updateThread(updatedThread)
                 if (rowsUpdated > 0) {
                     Log.d(
-                        "NotesViewModel",
-                        "Thread ${updatedThread.threadId} updated successfully."
+                        "NotesViewModel", "Thread ${updatedThread.threadId} updated successfully."
                     )
                     // If your UI relies on the Flow from getThreadsForNote(),
                     // the UI will automatically update when Room emits the new data.
                 } else {
                     Log.w(
-                        "NotesViewModel",
-                        "Thread ${updatedThread.threadId} not found for update."
+                        "NotesViewModel", "Thread ${updatedThread.threadId} not found for update."
                     )
                 }
             } catch (e: Exception) {
@@ -525,9 +538,7 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 
     fun saveNote(
-        onSuccess: (NoteEntity) -> Unit,
-        onError: (String) -> Unit,
-        existingThreadId: String? = null
+        onSuccess: (NoteEntity) -> Unit, onError: (String) -> Unit, existingThreadId: String? = null
     ) {
         val title = _noteTitle.value
         val description = _noteDescription.value
@@ -602,12 +613,18 @@ class NotesViewModel(private val noteDao: NoteDao, private val threadDao: Thread
     }
 }
 
-class NotesViewModelFactory(private val noteDao: NoteDao, private val threadDao: ThreadDao) :
+class NotesViewModelFactory(
+    private val noteDao: NoteDao, private val threadDao: ThreadDao,
+    private val sharedPreferencesManager: SharedPreferencesManager,
+) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NotesViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return NotesViewModel(noteDao, threadDao) as T
+            @Suppress("UNCHECKED_CAST") return NotesViewModel(
+                noteDao,
+                threadDao,
+                sharedPreferencesManager,
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

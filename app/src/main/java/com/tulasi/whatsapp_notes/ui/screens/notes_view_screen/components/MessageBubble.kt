@@ -65,7 +65,6 @@ fun MessageBubble(
                     title = thread.linkTitle!!,
                     description = thread.description!!,
                     imageUrl = thread.imageUrl,
-                    url = thread.imageUrl,
                 )
                 if(preview.imageUrl.isNotEmpty())  Spacer(modifier = Modifier.height(8.dp))
                 if(preview.imageUrl.isNotEmpty())  LinkPreviewCard(preview = preview, onLinkClick = onLinkClick)

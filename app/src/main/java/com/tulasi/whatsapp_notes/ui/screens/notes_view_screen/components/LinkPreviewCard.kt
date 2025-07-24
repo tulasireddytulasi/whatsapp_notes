@@ -2,7 +2,11 @@ package com.tulasi.whatsapp_notes.ui.screens.notes_view_screen.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,7 +32,7 @@ fun LinkPreviewCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onLinkClick(preview.url) },
+            .clickable { onLinkClick(preview.imageUrl) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
         border = BorderStroke(1.dp, Color(0xFF333333))
@@ -80,7 +84,6 @@ fun LinkPreviewCardPreview() {
         imageUrl = "https://readdy.ai/api/search-image?query=productivity%20workspace%20with%20laptop%2C%20notebook%2C%20coffee%20cup%2C%20clean%20desk%20setup%2C%20modern%20office%20environment%2C%20natural%20lighting%2C%20professional%20atmosphere&width=300&height=160&seq=productivity1&orientation=landscape",
         title = "The Ultimate Guide to Productivity",
         description = "Discover proven strategies to boost your productivity and achieve more in less time. Learn from experts and transform your daily routine.",
-        url = "https://example.com/productivity-guide"
     )
     LinkPreviewCard(preview = sampleLinkPreview) {}
 }

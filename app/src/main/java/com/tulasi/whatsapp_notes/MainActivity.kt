@@ -26,6 +26,7 @@ import com.tulasi.whatsapp_notes.ui.screens.settings_screen.SettingsScreen
 import com.tulasi.whatsapp_notes.ui.theme.NotesAppTheme
 import com.tulasi.whatsapp_notes.ui.viewmodel.NotesViewModel
 import com.tulasi.whatsapp_notes.ui.viewmodel.NotesViewModelFactory
+import com.tulasi.whatsapp_notes.utils.SharedPreferencesManager
 
 /**
  * Object to hold navigation routes.
@@ -50,8 +51,10 @@ object Routes {
 class MainActivity : ComponentActivity() {
 
     private val database by lazy { NotesDatabase.getInstance(applicationContext) }
+    private val sharedPreferencesManager by lazy { SharedPreferencesManager(applicationContext) }
+
     private val notesViewModel: NotesViewModel by viewModels {
-        NotesViewModelFactory(database.noteDao(), database.threadDao())
+        NotesViewModelFactory(database.noteDao(), database.threadDao(), sharedPreferencesManager)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                         ) {
-                            SettingsScreen()
+                            SettingsScreen(navController = navController)
                         }
                         // Define the route for the Note View Screen with a noteId argument
                         composable(

@@ -11,20 +11,21 @@ data class Note(
     val timestamp: String,
     val isPinned: Boolean,
     val colorStripHex: String? = null,
-    val threads: List<Thread>
 )
 
 data class Thread(
     val threadId: String,
+    val noteOwnerId: String,
     val content: String,
     val timestamp: String,
-    val linkPreview: LinkPreview? = null // Nullable to indicate if a link preview exists
+    val imageUrl: String?, // Nullable
+    val linkTitle: String?,    // Nullable
+    val description: String? // Nullable
 )
 
 data class LinkPreview(
     val imageUrl: String,
     val title: String,
     val description: String,
-    val url: String
 )
 

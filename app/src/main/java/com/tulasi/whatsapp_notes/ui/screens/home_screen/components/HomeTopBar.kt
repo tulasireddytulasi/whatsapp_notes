@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tulasi.whatsapp_notes.ui.theme.NotesAppTheme // Assuming you'll define your theme here
+import com.tulasi.whatsapp_notes.ui.theme.NotesAppTheme
 
 /**
  * Composable function for the top app bar of the Notes Home Screen.
@@ -56,7 +56,7 @@ fun HomeTopBar(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Person, // Using a default Material Design icon for now
+                imageVector = Icons.Default.Settings, // Using a default Material Design icon for now
                 contentDescription = "User Profile",
                 tint = Color(0xFFD1D5DB) // Equivalent to gray-300 in Tailwind
             )
