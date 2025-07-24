@@ -1,5 +1,6 @@
 package com.tulasi.whatsapp_notes.ui.screens.notes_view_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,6 +60,8 @@ fun NoteViewScreen(
     isPinned: Boolean,
 ) {
 
+    val context = LocalContext.current
+
     DisposableEffect(noteId) {
         notesViewModel.setCurrentNoteId(noteId)
         onDispose {
@@ -66,6 +70,7 @@ fun NoteViewScreen(
         }
     }
 
+    val pinStatus by notesViewModel.isNotesPinned.collectAsState(initial = isPinned)
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
     val messageInput by notesViewModel.messageInput.collectAsState()
     val showLinkPreview by notesViewModel.showLinkPreview.collectAsState()
@@ -106,9 +111,20 @@ fun NoteViewScreen(
             } else {
                 NoteAppBar(
                     title = noteTitle,
-                    isPinned = isPinned,
+                    isPinned = pinStatus,
                     onBackClick = { navController.popBackStack() },
-                    onPinClick = { /* Handle pin click */ },
+                    onPinClick = {
+                        notesViewModel.updatePinStatus2(
+                            noteId = noteId,
+                            pinStatus = !pinStatus,
+                            onSuccess = {},
+                            onError = {
+                                Toast.makeText(
+                                    context, "Error: unable to pin the notes", Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                        )
+                    },
                     onMoreOptionsClick = { /* Handle more options click */ },
                 )
             }

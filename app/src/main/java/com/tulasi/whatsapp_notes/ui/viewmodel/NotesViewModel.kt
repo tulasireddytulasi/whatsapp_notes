@@ -86,9 +86,13 @@ class NotesViewModel(
     private val _previewDescription = MutableStateFlow<String?>(null)
     val previewDescription: StateFlow<String?> = _previewDescription.asStateFlow()
 
-    // Selection mode active status
+    // Selection mode active status (for threads)
     private val _selectionModeActive = MutableStateFlow(false)
     val selectionModeActive: StateFlow<Boolean> = _selectionModeActive.asStateFlow()
+
+    // Is notes pinned status
+    private val _isNotesPinned = MutableStateFlow(false)
+    val isNotesPinned: StateFlow<Boolean> = _isNotesPinned.asStateFlow()
 
     // Selection mode active status (for notes)
     private val _noteSelectionModeActive = MutableStateFlow(false)
@@ -131,7 +135,7 @@ class NotesViewModel(
         // 2. There is at least one note selected.
         // 3. AND, if we were to pin all currently selected unpinned notes,
         //    the total number of pinned notes would NOT exceed the maximum allowed.
-        selectedButNotYetPinnedCount > 0 && (selected.isNotEmpty() && (currentlyPinnedCount + selectedButNotYetPinnedCount <= MAX_PINNED_NOTES))
+        selectedButNotYetPinnedCount > 0 && selected.isNotEmpty() && (selectedButNotYetPinnedCount <= MAX_PINNED_NOTES)
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false
     )
@@ -176,6 +180,28 @@ class NotesViewModel(
             } else {
                 // Optional: Log if no selected notes were found for status update
                 Log.d("NotesViewModel", "No selected notes to update pin status.")
+            }
+        }
+    }
+
+    fun updatePinStatus2(
+        noteId: String,
+        pinStatus: Boolean,
+        onSuccess: (Boolean) -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            if (noteId.isNotEmpty()) {
+                val updatedCount = noteDao.updateNotesPinnedStatus(listOf(noteId), pinStatus)
+                if(updatedCount == 1){
+                    _isNotesPinned.value = pinStatus
+                }
+                Log.d("NotesViewModel", "Updated pin status for $updatedCount selected notes.")
+                onSuccess(pinStatus)
+            } else {
+                // Optional: Log if no selected notes were found for status update
+                Log.d("NotesViewModel", "No selected notes to update pin status.")
+                onError("noteId empty")
             }
         }
     }

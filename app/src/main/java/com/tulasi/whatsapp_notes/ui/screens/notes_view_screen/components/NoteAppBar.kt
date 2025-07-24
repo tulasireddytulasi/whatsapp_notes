@@ -12,10 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -50,11 +46,6 @@ fun NoteAppBar(
     modifier: Modifier = Modifier
 ) {
 
-    // State to manage whether the item is currently pinned or not.
-    // By default, it's not pinned (false).
-//    var isPinned by remember { mutableStateOf(false) }
-    var isPinnedVal by remember { mutableStateOf(isPinned) }
-
     TopAppBar(
         modifier = modifier,
         // Setting custom colors for the app bar to match the dark theme from the HTML
@@ -88,22 +79,17 @@ fun NoteAppBar(
             // Pin Icon
             // IconButton for the pin toggle functionality
             IconButton(
-                onClick = {
-                    // Toggle the isPinned state when the button is clicked
-                    isPinnedVal = !isPinnedVal
-                    // You can add a log or a Toast message here to see the state change
-                    println("Pin status changed to: $isPinnedVal")
-                }
+                onClick = { onPinClick() }
             ) {
                 // Display the appropriate icon based on the isPinned state
                 Icon(
                     // Use painterResource to load your custom SVG files
-                    painter = if (isPinnedVal) painterResource(id = R.drawable.pin_filled) else
+                    painter = if (isPinned) painterResource(id = R.drawable.pin_filled) else
                         painterResource(id = R.drawable.pin_off_filled),
                     modifier = Modifier.size(24.dp),
-                    contentDescription = if (isPinnedVal) "Unpin Note" else "Pin Note",
+                    contentDescription = if (isPinned) "Unpin Note" else "Pin Note",
                     // Change the tint color based on the isPinned state
-                    tint = if (isPinnedVal) MaterialTheme.colorScheme.primary else Color.Gray
+                    tint = if (isPinned) MaterialTheme.colorScheme.primary else Color.Gray
                 )
             }
 

@@ -42,7 +42,7 @@ fun HomeTopBar(
     ) {
         // App Title
         Text(
-            text = "Notes",
+            text = "WhatsAppNotes",
             fontSize = 20.sp, // Similar to h1 in HTML
             fontWeight = FontWeight.Bold,
             color = Color.White // Text color from HTML
