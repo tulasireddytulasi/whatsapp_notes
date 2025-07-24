@@ -62,8 +62,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             NotesAppTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController() // Create a NavController
                     val animDurationMS = 400
@@ -112,51 +111,43 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(navController = navController)
                         }
                         // Define the route for the Note View Screen with a noteId argument
-                        composable(
-                            route = Routes.NOTE_VIEW_SCREEN,
-                            enterTransition = {
+                        composable(route = Routes.NOTE_VIEW_SCREEN, enterTransition = {
 
-                                // 'initialState' represents the screen that was active before 'screenC' entered.
-                                val slideDirection = when (initialState.destination.route) {
-                                    // If coming from "screenA", Screen C slides in from the Right
-                                    Routes.HOME_SCREEN -> AnimatedContentTransitionScope
-                                        .SlideDirection.Left
-                                    // If coming from "screenB", Screen C slides in from the Left
-                                    Routes.CREATE_EDIT_SCREEN -> AnimatedContentTransitionScope
-                                        .SlideDirection.Right
-                                    // Add more conditions for other specific previous routes
-                                    // Default direction if the previous screen is not explicitly handled above
-                                    else -> AnimatedContentTransitionScope.SlideDirection.Left
-                                }
+                            // 'initialState' represents the screen that was active before 'screenC' entered.
+                            val slideDirection = when (initialState.destination.route) {
+                                // If coming from "screenA", Screen C slides in from the Right
+                                Routes.HOME_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Left
+                                // If coming from "screenB", Screen C slides in from the Left
+                                Routes.CREATE_EDIT_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Right
+                                // Add more conditions for other specific previous routes
+                                // Default direction if the previous screen is not explicitly handled above
+                                else -> AnimatedContentTransitionScope.SlideDirection.Left
+                            }
 
-                                slideIntoContainer(
-                                    slideDirection,
-                                    tween(animDurationMS)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                    AnimatedContentTransitionScope.SlideDirection
-                                        .Right,
-                                    tween(animDurationMS)
-                                )
-                            },
-                            arguments = listOf(
-                                navArgument(Routes.NOTE_ID_ARG) {
-                                    type = NavType.StringType // Define argument type
-                                    nullable =
-                                        true // Allow null for initial testing or if noteId is optional
-                                },
-                                navArgument(Routes.NOTE_TITLE_ARG) {
-                                    type = NavType.StringType // Define argument type
-                                    nullable =
-                                        true // Allow null for initial testing or if noteId is optional
-                                },
-                                navArgument(Routes.NOTE_PIN_ARG) {
-                                    type = NavType.BoolType // Define argument type
-                                    nullable = false // Allow null for initial testing or if noteId
-                                },
+                            slideIntoContainer(
+                                slideDirection, tween(animDurationMS)
                             )
+                        }, popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                tween(animDurationMS)
+                            )
+                        }, arguments = listOf(
+                            navArgument(Routes.NOTE_ID_ARG) {
+                                type = NavType.StringType // Define argument type
+                                nullable =
+                                    true // Allow null for initial testing or if noteId is optional
+                            },
+                            navArgument(Routes.NOTE_TITLE_ARG) {
+                                type = NavType.StringType // Define argument type
+                                nullable =
+                                    true // Allow null for initial testing or if noteId is optional
+                            },
+                            navArgument(Routes.NOTE_PIN_ARG) {
+                                type = NavType.BoolType // Define argument type
+                                nullable = false // Allow null for initial testing or if noteId
+                            },
+                        )
                         ) { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
                             val noteTitle =
@@ -176,51 +167,45 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // Create or Edit Screen
-                        composable(
-                            Routes.CREATE_EDIT_SCREEN,
-                            enterTransition = {
-                                slideIntoContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Left,
-                                    tween(animDurationMS)
-                                )
-                            },
-                            popExitTransition = {
-
-                                // 'targetState' represents the screen that will become visible after 'screenC' exits.
-                                val slideDirection = when (targetState.destination.route) {
-                                    // If popping back to "screenA", slide Screen C out to the Right
-                                    Routes.HOME_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Right
-                                    // If popping back to "screenB", slide Screen C out to the Left
-                                    Routes.NOTE_VIEW_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Left
-                                    // Add more conditions for other specific destination routes
-                                    // Default direction if the destination is not explicitly handled above
-                                    else -> AnimatedContentTransitionScope.SlideDirection.Right
-                                }
-
-                                slideOutOfContainer(
-                                    slideDirection,
-                                    tween(animDurationMS)
-                                )
-                            },
-                            arguments = listOf(
-                                navArgument(Routes.NOTE_ID_ARG) {
-                                    type = NavType.StringType // Define argument type
-                                    nullable =
-                                        true // Allow null for initial testing or if noteId is optional
-                                    defaultValue = null
-                                },
-                                navArgument(Routes.THREAD_ID_ARG) {
-                                    type = NavType.StringType // Define argument type
-                                    nullable =
-                                        true // Allow null for initial testing or if noteId is optional
-                                    defaultValue = null
-                                },
+                        composable(Routes.CREATE_EDIT_SCREEN, enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                tween(animDurationMS)
                             )
+                        }, popExitTransition = {
+
+                            // 'targetState' represents the screen that will become visible after 'screenC' exits.
+                            val slideDirection = when (targetState.destination.route) {
+                                // If popping back to "screenA", slide Screen C out to the Right
+                                Routes.HOME_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Right
+                                // If popping back to "screenB", slide Screen C out to the Left
+                                Routes.NOTE_VIEW_SCREEN -> AnimatedContentTransitionScope.SlideDirection.Left
+                                // Add more conditions for other specific destination routes
+                                // Default direction if the destination is not explicitly handled above
+                                else -> AnimatedContentTransitionScope.SlideDirection.Right
+                            }
+
+                            slideOutOfContainer(
+                                slideDirection, tween(animDurationMS)
+                            )
+                        }, arguments = listOf(
+                            navArgument(Routes.NOTE_ID_ARG) {
+                                type = NavType.StringType // Define argument type
+                                nullable =
+                                    true // Allow null for initial testing or if noteId is optional
+                                defaultValue = null
+                            },
+                            navArgument(Routes.THREAD_ID_ARG) {
+                                type = NavType.StringType // Define argument type
+                                nullable =
+                                    true // Allow null for initial testing or if noteId is optional
+                                defaultValue = null
+                            },
+                        )
                         ) { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString(Routes.NOTE_ID_ARG)
                             val threadId = backStackEntry.arguments?.getString(
-                                Routes
-                                    .THREAD_ID_ARG
+                                Routes.THREAD_ID_ARG
                             )
                             // Pass navController to HomeScreen
                             CreateEditNoteScreen(
