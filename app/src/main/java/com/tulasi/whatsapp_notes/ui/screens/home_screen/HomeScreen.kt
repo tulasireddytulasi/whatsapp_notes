@@ -291,6 +291,7 @@ fun HomeScreen(
                                         .fillMaxWidth()
                                         .combinedClickable( // Use combinedClickable for long press
                                             onClick = {
+                                                focusManager.clearFocus()
                                                 if (noteSelectionModeActive) {
                                                     notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                                 } else {
@@ -303,6 +304,7 @@ fun HomeScreen(
                                                 }
                                             },
                                             onLongClick = {
+                                                focusManager.clearFocus()
                                                 notesViewModel.toggleNoteSelectionMode(true)
                                                 notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                             }
