@@ -70,7 +70,8 @@ fun NoteViewScreen(
         }
     }
 
-    val pinStatus by notesViewModel.isNotesPinned.collectAsState(initial = isPinned)
+
+
     val threads by notesViewModel.threads.collectAsState(initial = emptyList())
     val messageInput by notesViewModel.messageInput.collectAsState()
     val showLinkPreview by notesViewModel.showLinkPreview.collectAsState()
@@ -78,6 +79,7 @@ fun NoteViewScreen(
     val previewTitle by notesViewModel.previewTitle.collectAsState()
     val previewDescription by notesViewModel.previewDescription.collectAsState()
     val selectionModeActive by notesViewModel.selectionModeActive.collectAsState() // Observe selection mode
+    val pinStatus by notesViewModel.isNotesPinned.collectAsState()
     val selectedThreadCount = threads.count { it.isSelected } // Count selected items
 
     Scaffold(

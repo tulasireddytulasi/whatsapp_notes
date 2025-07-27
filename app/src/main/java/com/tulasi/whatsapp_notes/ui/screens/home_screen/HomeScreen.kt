@@ -1,5 +1,6 @@
 package com.tulasi.whatsapp_notes.ui.screens.home_screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -236,20 +237,22 @@ fun HomeScreen(
                                                 if (noteSelectionModeActive) {
                                                     notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                                 } else {
+                                                    updatePinStatus(
+                                                        noteId = note.note.note.noteId,
+                                                        pinStatus = note.note.note.isPinned,
+                                                        notesViewModel = notesViewModel,
+                                                    )
                                                     navController.navigate(
                                                         "${Routes.NOTE_FIRST_ARG}/${
-                                                            note.note.note
-                                                                .noteId
+                                                            note.note.note.noteId
                                                         }/${note.note.note.title}/${note.note.note.isPinned}"
                                                     )
                                                 }
-                                            },
-                                            onLongClick = {
+                                            }, onLongClick = {
                                                 focusManager.clearFocus()
                                                 notesViewModel.toggleNoteSelectionMode(true)
                                                 notesViewModel.toggleNoteSelection(note.note.note.noteId)
-                                            }
-                                        ),
+                                            }),
                                 )
                             }
                         }
@@ -295,20 +298,22 @@ fun HomeScreen(
                                                 if (noteSelectionModeActive) {
                                                     notesViewModel.toggleNoteSelection(note.note.note.noteId)
                                                 } else {
+                                                    updatePinStatus(
+                                                        noteId = note.note.note.noteId,
+                                                        pinStatus = note.note.note.isPinned,
+                                                        notesViewModel = notesViewModel,
+                                                    )
                                                     navController.navigate(
                                                         "${Routes.NOTE_FIRST_ARG}/${
-                                                            note.note.note
-                                                                .noteId
+                                                            note.note.note.noteId
                                                         }/${note.note.note.title}/${note.note.note.isPinned}"
                                                     )
                                                 }
-                                            },
-                                            onLongClick = {
+                                            }, onLongClick = {
                                                 focusManager.clearFocus()
                                                 notesViewModel.toggleNoteSelectionMode(true)
                                                 notesViewModel.toggleNoteSelection(note.note.note.noteId)
-                                            }
-                                        ),
+                                            }),
                                 )
                             }
                         }
@@ -317,6 +322,8 @@ fun HomeScreen(
             }
         }
     }
+
+
 
     ColorPickerDialog(
         showDialog = showColorPickerDialog,
@@ -360,6 +367,17 @@ fun HomeScreen(
             )
         }
     }
+}
+
+fun updatePinStatus(noteId: String, pinStatus: Boolean, notesViewModel: NotesViewModel){
+    notesViewModel.updatePinStatus2(
+        noteId = noteId,
+        pinStatus = pinStatus,
+        onSuccess = {},
+        onError = {
+            Log.e("Error: unable to pin the notes", "")
+        },
+    )
 }
 
 /**

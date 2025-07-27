@@ -196,7 +196,8 @@ class NotesViewModel(
                 if(updatedCount == 1){
                     _isNotesPinned.value = pinStatus
                 }
-                Log.d("NotesViewModel", "Updated pin status for $updatedCount selected notes.")
+                Log.d("NotesViewModel", "Updated pin status for $updatedCount selected " +
+                        "notes\npinStatus: $pinStatus.")
                 onSuccess(pinStatus)
             } else {
                 // Optional: Log if no selected notes were found for status update
