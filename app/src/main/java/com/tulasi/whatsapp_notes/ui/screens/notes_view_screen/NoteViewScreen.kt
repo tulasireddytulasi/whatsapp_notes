@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -81,6 +84,7 @@ fun NoteViewScreen(
     val selectionModeActive by notesViewModel.selectionModeActive.collectAsState() // Observe selection mode
     val pinStatus by notesViewModel.isNotesPinned.collectAsState()
     val selectedThreadCount = threads.count { it.isSelected } // Count selected items
+    val clipboardManager = LocalClipboardManager.current
 
     Scaffold(
         topBar = {
@@ -99,7 +103,32 @@ fun NoteViewScreen(
                             notesViewModel.deleteParticularThread(threadId)
                         }
                     },
-                    onShareSelected = { /* Handle share action */ },
+                    onShareSelected = {
+                        val selectedThreads = notesViewModel.threads.value
+                            .filter { it.isSelected }
+                            .map { it.thread }
+                        if (selectedThreads.isNotEmpty()) {
+                            val shareText = selectedThreads.joinToString(separator = "\n") { it.content }
+                            val sendIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                            }
+                            val shareIntent = android.content.Intent.createChooser(sendIntent, "Share notes")
+                            context.startActivity(shareIntent)
+                            notesViewModel.toggleSelectionMode(false)
+                        }
+                    },
+                    onCopySelected = {
+                        val selectedThreads = notesViewModel.threads.value
+                            .filter { it.isSelected }
+                            .map { it.thread }
+                        if (selectedThreads.isNotEmpty()) {
+                            val copiedText = selectedThreads.joinToString(separator = "\n") { it.content }
+                            clipboardManager.setText(AnnotatedString(copiedText))
+                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                            notesViewModel.toggleSelectionMode(false)
+                        }
+                    },
                     onEditSelection = {
                         val selectedThreads = notesViewModel.threads.value
                             .filter { it.isSelected }
@@ -234,7 +263,8 @@ fun SelectionAppBar(
     onEditSelection: () -> Unit,
     onClearSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
-    onShareSelected: () -> Unit
+    onShareSelected: () -> Unit,
+    onCopySelected: () -> Unit,
 ) {
     TopAppBar(
         title = { Text(text = "$selectedCount selected") },
@@ -252,6 +282,9 @@ fun SelectionAppBar(
                 IconButton(onClick = onEditSelection) {
                     Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
                 }
+            }
+            IconButton(onClick = onCopySelected) {
+                Icon(Icons.Filled.ContentCopy, contentDescription = "Copy selected")
             }
             IconButton(onClick = onDeleteSelected) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete selected")

@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,6 +106,7 @@ fun HomeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var showColorPickerDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current // Get the FocusManager
+    val clipboardManager = LocalClipboardManager.current
 
 
 
@@ -141,6 +144,19 @@ fun HomeScreen(
                                 },
                             )
                         },
+                        onCopySelected = {
+                            val selectedNotes = notesWithLastThread.filter { it.isSelected }
+                            if (selectedNotes.isNotEmpty()) {
+                                val copiedText = selectedNotes.joinToString(separator = "\n\n") { noteUiState ->
+                                    val title = noteUiState.note.note.title
+                                    val threadsText = noteUiState.note.threads?.joinToString(separator = "\n") { it.content } ?: ""
+                                    if (title.isNotBlank()) "$title\n$threadsText" else threadsText
+                                }
+                                clipboardManager.setText(AnnotatedString(copiedText))
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                notesViewModel.toggleNoteSelectionMode(false)
+                            }
+                        }
                     )
                 } else {
                     HomeTopBar(onProfileClick = {

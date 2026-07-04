@@ -3,6 +3,7 @@ package com.tulasi.whatsapp_notes.ui.screens.home_screen.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,7 @@ fun SelectionAppBar(
     onEditSelection: () -> Unit,
     onClearSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
+    onCopySelected: () -> Unit,
 ) {
     val context = LocalContext.current
     TopAppBar(
@@ -56,6 +58,14 @@ fun SelectionAppBar(
                 IconButton(onClick = onEditSelection) {
                     Icon(Icons.Filled.Edit, contentDescription = "Edit selected")
                 }
+            }
+            IconButton(onClick = onCopySelected) {
+                Icon(
+                    Icons.Filled.ContentCopy,
+                    contentDescription = "Copy selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
             }
             IconButton(onClick = onDeleteSelected) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete selected")
